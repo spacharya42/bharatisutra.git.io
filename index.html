@@ -251,6 +251,13 @@
         .pyodide-progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)); width: 0%; transition: width 0.3s ease; }
         @media (max-width: 768px) { .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } .content-area { padding: 16px; } .top-bar { padding: 12px 16px; } .search-container { display: none; } .mobile-menu-btn { display: flex; } .toc-list { columns: 1; } }
         .mobile-menu-btn { display: none; background: transparent; border: none; color: var(--text-primary); font-size: 24px; cursor: pointer; padding: 4px; }
+        /* Protection styles: disable selection, image/link interaction and printing for protected content */
+        .nav-item-protect { margin-left: 6px; font-size: 12px; color: var(--accent-purple); }
+        .protected-content { user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; }
+        .protected-content img, .protected-content video { pointer-events: none; user-drag: none; -webkit-user-drag: none; }
+        .protected-content a { pointer-events: none; color: inherit; text-decoration: none; }
+        .protected-print-notice { display: none; font-family: var(--font-mono); font-size: 13px; color: var(--accent-red); padding: 8px 0; }
+        @media print { .protected-content { display: none !important; } .protected-print-notice { display: block !important; } }
     </style>
 </head>
 <body>
@@ -276,7 +283,7 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="sidebar-logo">📖 Notes</div>
-                <div class="sidebar-title">Documentation</div>
+                <div class="sidebar-title">Compiled by: <br>शिवप्रसाद आचार्य<br>M.Sc;LL.M <br>(वसन्तपञ्चमि,२०८२)</div>
             </div>
             <nav class="nav-container" id="navContainer">
                 <div class="special-nav-item readme-item" id="readmeItem" style="display: none;"><span class="special-nav-item-emoji">📘</span><span>README.md</span></div>
@@ -324,7 +331,7 @@
 // Sample Data
 // ========================================
 window.readmeContent = `# 📚 Markdown Notes Viewer\n\nWelcome to the Markdown Notes Viewer!\n\n## Features\n\n- Multi-level nested navigation\n- Password-protected notes\n- Combined views (U0, U01)\n- Public All Notes view\n- Advanced table filtering\n- Nepali/Devanagari search\n\n## Usage\n\nClick notes in the sidebar to view them.`;
-window.readmeMeta = { name: "README", emoji: "📘", password: null };
+window.readmeMeta = { name: "README", emoji: "📘", password: null, protection: 'NO' };
 
 window.groupUMeta = { name: "JavaScript & React", emoji: "🟨", description: "Frontend docs" };
 window.groupVMeta = { name: "Python & Data", emoji: "🐍", description: "Backend docs" };
@@ -344,37 +351,37 @@ window.combinedV02Meta = { name: "Data Collection", emoji: "📊", description: 
 window.publicAllMeta = { name: "Public All Notes", emoji: "🌐", description: "All public notes" };
 
 window.noteU11Content = `# Introduction to JavaScript\n\n## Overview\nJavaScript is versatile.\n\n## Features Table\n\n| Feature | Type | Supported |\n|---------|------|----------|\n| Variables | let/const | Yes |\n| Functions | Arrow | Yes |\n| Classes | ES6 | Yes |\n| Modules | ESM | Yes |\n| Async | Promise | Yes |`;
-window.noteU11Meta = { name: "JS Basics", emoji: "📒", password: null };
+window.noteU11Meta = { name: "JS Basics", emoji: "📒", password: null, protection: 'NO' };
 
 window.noteU12Content = `# Advanced JavaScript\n\n## Closures\nClosures capture scope.\n\n## Performance\n\n| Method | Speed | Memory |\n|--------|-------|--------|\n| Callbacks | Fast | Low |\n| Promises | Medium | Medium |\n| Async/Await | Medium | Medium |`;
-window.noteU12Meta = { name: "JS Advanced", emoji: "📗", password: null };
+window.noteU12Meta = { name: "JS Advanced", emoji: "📗", password: null, protection: 'NO' };
 
 window.noteU13Content = `# Security Patterns (Locked)\n\n## Auth Table\n\n| Method | Level |\n|--------|-------|\n| JWT | High |\n| OAuth | Very High |`;
-window.noteU13Meta = { name: "Security", emoji: "🔒", password: "secret123" };
+window.noteU13Meta = { name: "Security", emoji: "🔒", password: "secret123", protection: 'YES' };
 
 window.noteU21Content = `# React Fundamentals\n\n## Components\nBuilding blocks of React.\n\n## Comparison\n\n| Feature | Class | Functional |\n|---------|-------|------------|\n| State | this.state | useState |\n| Lifecycle | methods | useEffect |\n\n## Resources\n\n| Resource | Link | Type |\n|----------|------|------|\n| Official Docs | https://react.dev | External |\n| Tutorial | https://react.dev/learn | External |\n| Community | https://github.com/facebook/react | Repository |`;
-window.noteU21Meta = { name: "React Basics", emoji: "⚛️", password: null };
+window.noteU21Meta = { name: "React Basics", emoji: "⚛️", password: null, protection: 'NO' };
 
 window.noteU22Content = `# State Management\n\n## Solutions\n\n| Library | Size | Learning |\n|---------|------|----------|\n| Redux | Large | Steep |\n| MobX | Medium | Medium |\n| Zustand | Small | Easy |\n\n## Gallery\n\n| Title | Caption | Subcaption | URL |\n|-------|---------|------------|-----|\n| React Logo | Official React brand | Modern UI library | https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1024px-React-icon.svg.png |\n| Vue Framework | Progressive framework | Alternative to React | https://vuejs.org/images/logo.png |\n| Angular Icon | Google framework | Complete solution | https://angular.io/assets/images/logos/angular/angular.svg |`;
-window.noteU22Meta = { name: "State Mgmt", emoji: "🔄", password: "123" };
+window.noteU22Meta = { name: "State Mgmt", emoji: "🔄", password: "123", protection: 'YES' };
 
 window.noteV11Content = `# Python Basics\n\n## Comparison\n\n| Feature | Python | Java |\n|---------|--------|------|\n| Typing | Dynamic | Static |\n| Syntax | Clean | Verbose |`;
-window.noteV11Meta = { name: "Python Intro", emoji: "🐍", password: null };
+window.noteV11Meta = { name: "Python Intro", emoji: "🐍", password: null, protection: 'NO' };
 
 window.noteV12Content = `# Python OOP\n\n## Concepts\n\n| Concept | Description |\n|---------|-------------|\n| Encapsulation | Data hiding |\n| Inheritance | Code reuse |`;
-window.noteV12Meta = { name: "Python OOP", emoji: "🎯", password: null };
+window.noteV12Meta = { name: "Python OOP", emoji: "🎯", password: null, protection: 'NO' };
 
 window.noteV13Content = `# API Keys (Locked)\n\n## Keys\n\n| Env | Level |\n|-----|-------|\n| Prod | Full |`;
-window.noteV13Meta = { name: "API Keys", emoji: "🔐", password: "admin456" };
+window.noteV13Meta = { name: "API Keys", emoji: "🔐", password: "admin456", protection: 'YES' };
 
 window.noteV21Content = `# Data Science\n\n## Libraries\n\n| Library | Purpose | Performance |\n|---------|---------|-------------|\n| NumPy | Arrays | Excellent |\n| Pandas | DataFrames | Good |\n| Matplotlib | Plotting | Good |`;
-window.noteV21Meta = { name: "Data Science", emoji: "📊", password: null };
+window.noteV21Meta = { name: "Data Science", emoji: "📊", password: null, protection: 'NO' };
 
 window.noteW11Content = `# नेपाली भाषा\n\n## शिव को कथा\nशिव देवता हुन्। सीव पनि भनिन्छ।\n\n## शब्द तालिका\n\n| शब्द | अर्थ |\n|------|------|\n| शिव | देवता |\n| विकास | Progress |`;
-window.noteW11Meta = { name: "नेपाली भाषा", emoji: "🇳🇵", password: null };
+window.noteW11Meta = { name: "नेपाली भाषा", emoji: "🇳🇵", password: null, protection: 'NO' };
 
 window.noteW12Content = `# देवनागरी\n\n## वर्णमाला\nक ख ग घ ङ\n\n## तालिका\n\n| वर्ग | वर्णहरू |\n|------|--------|\n| क वर्ग | क ख ग घ ङ |`;
-window.noteW12Meta = { name: "देवनागरी", emoji: "📜", password: null };
+window.noteW12Meta = { name: "देवनागरी", emoji: "📜", password: null, protection: 'NO' };
     </script>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
     <script>
@@ -384,7 +391,7 @@ window.noteW12Meta = { name: "देवनागरी", emoji: "📜", password
 const AppState = {
     pyodide: null, notes: new Map(), groups: new Map(), groupMeta: new Map(),
     unitMeta: new Map(), combinedMeta: new Map(), currentNote: null,
-    unlockedNotes: new Set(), searchMatches: [], currentMatchIndex: -1,
+    unlockedNotes: new Set(), searchMatches: [], currentMatchIndex: -1, currentProtected: false,
     originalContent: '', hasReadme: false, combinedViewHeadingMap: {},
     headingIdMap: {}, headingCounter: 0
 };
@@ -586,7 +593,7 @@ function createUnitDropdown(group, unit) {
     for (const noteId of AppState.groups.get(group).get(unit)) {
         const note = AppState.notes.get(noteId), isLocked = note.meta.password !== null && !AppState.unlockedNotes.has(noteId), hasPwd = note.meta.password !== null;
         const item = document.createElement('div'); item.className = 'nav-item'; item.dataset.noteId = noteId;
-        item.innerHTML = `<span class="nav-item-emoji">${note.meta.emoji}</span><span class="nav-item-name">${note.meta.name}</span>${hasPwd ? (isLocked ? '<span class="nav-item-lock">🔒</span>' : '<span class="nav-item-unlock">🔓</span>') : '<span class="nav-item-unlock">🔓</span>'}`;
+        item.innerHTML = `<span class="nav-item-emoji">${note.meta.emoji}</span><span class="nav-item-name">${note.meta.name}</span>${note.meta.protection === 'YES' ? '<span class="nav-item-protect">🛡️</span>' : ''}${hasPwd ? (isLocked ? '<span class="nav-item-lock">🔒</span>' : '<span class="nav-item-unlock">🔓</span>') : '<span class="nav-item-unlock">🔓</span>'}`;
         item.addEventListener('click', e => { e.stopPropagation(); loadNote(noteId); });
         content.appendChild(item);
     }
@@ -662,6 +669,28 @@ function displayRenderedContent(note, rendered, isCombined = false, notesInCombi
     const html = rendered.html || rendered.get('html');
     const toc = isCombined && notesInCombined.length ? generateCombinedTOC(html, notesInCombined) : generateCustomTOC(html);
     area.innerHTML = `<header class="content-header"><h1 class="content-title"><span class="content-title-emoji">${note.meta.emoji}</span>${note.meta.name}</h1><div class="content-meta">${note.meta.description || (isCombined ? `${notesInCombined.length} notes combined` : 'Individual note')}</div></header>${toc ? `<nav class="toc-container" id="toc-container"><div class="toc-title">📋 Table of Contents</div><ul class="toc-list${isCombined ? '' : ' single-column'}">${toc}</ul></nav>` : ''}<div class="markdown-body" id="markdownBody">${html}</div>`;
+
+    // Determine protection state: either note.meta.protection or any note in combined
+    const metaObj = note && note.meta ? note.meta : {};
+    let isProtected = metaObj.protection === 'YES';
+    if (!isProtected && isCombined && Array.isArray(notesInCombined)) {
+        isProtected = notesInCombined.some(n => n.meta && n.meta.protection === 'YES');
+    }
+
+    // Insert a print notice (visible only during print) when protected
+    const existingNotice = area.querySelector('.protected-print-notice');
+    if (isProtected) {
+        if (!existingNotice) {
+            const headerEl = area.querySelector('.content-header') || area.firstElementChild;
+            if (headerEl) headerEl.insertAdjacentHTML('afterend', '<div class="protected-print-notice">🔒 Protected content — printing and copying disabled.</div>');
+        }
+    } else {
+        if (existingNotice) existingNotice.remove();
+    }
+
+    // Apply protection behaviors
+    enforceProtection(document.getElementById('markdownBody'), isProtected);
+
     addHeadingIds();
     setupTableFilters();
     setupTocClickHandlers();
@@ -765,6 +794,23 @@ function addHeadingIds() {
             h.id = `heading-other-${otherIndex++}`;
         }
     });
+}
+
+// Protection enforcement: global handlers check AppState.currentProtected
+function enforceProtection(area, isProtected) {
+    AppState.currentProtected = !!isProtected;
+    if (!area) return;
+
+    // Disable/enable copy buttons inside this area
+    const copyBtns = area.querySelectorAll('.copy-table-btn, .copy-format-item');
+    copyBtns.forEach(b => {
+        if (isProtected) { b.setAttribute('disabled', 'true'); b.setAttribute('aria-disabled', 'true'); b.title = 'Disabled for protected content'; }
+        else { b.removeAttribute('disabled'); b.removeAttribute('aria-disabled'); b.title = '' }
+    });
+
+    // Make images/links non-draggable/clickable when protected
+    area.querySelectorAll('img,video').forEach(el => { el.draggable = !isProtected; if (isProtected) el.setAttribute('oncontextmenu', "return false;"); else el.removeAttribute('oncontextmenu'); });
+    area.querySelectorAll('a').forEach(a => { if (isProtected) { a.dataset._href = a.getAttribute('href'); a.removeAttribute('href'); } else { if (a.dataset._href) a.setAttribute('href', a.dataset._href); } });
 }
 
 // ========================================
@@ -957,6 +1003,7 @@ function clearTableFilter(idx, table) {
 }
 
 function copyTableToClipboard(table, button) {
+    if (AppState.currentProtected) { console.warn('Copy disabled for protected content'); return; }
     const rows = [];
     table.querySelectorAll('tr').forEach(row => {
         const cells = [];
@@ -1056,6 +1103,7 @@ function tableToTSV(data) {
 }
 
 function copyTableInFormat(table, format, button, dropdown) {
+    if (AppState.currentProtected) { console.warn('Copy disabled for protected content'); return; }
     const data = getTableData(table);
     let content = '';
     
@@ -1226,6 +1274,30 @@ function setupBackToTop() {
     window.addEventListener('scroll', () => { btn.classList.toggle('visible', window.scrollY > 300); });
     btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 }
+
+// Global protection handlers: prevent copy/select/print when viewing protected content
+(function() {
+    document.addEventListener('copy', (e) => {
+        if (!AppState.currentProtected) return;
+        const body = document.getElementById('markdownBody'); if (!body) return;
+        if (body.contains(e.target)) e.preventDefault();
+    });
+    ['cut','contextmenu','selectstart','dragstart'].forEach(ev => document.addEventListener(ev, (e) => {
+        if (!AppState.currentProtected) return;
+        const body = document.getElementById('markdownBody'); if (!body) return;
+        if (body.contains(e.target)) e.preventDefault();
+    }));
+
+    window.addEventListener('keydown', (e) => {
+        if (!AppState.currentProtected) return;
+        const body = document.getElementById('markdownBody'); if (!body) return;
+        if (!body.contains(document.activeElement) && !body.contains(e.target)) return;
+        // Block common copy/print/save shortcuts
+        if ((e.ctrlKey || e.metaKey) && ['c','p','s','a'].includes((e.key || '').toLowerCase())) {
+            e.preventDefault(); e.stopPropagation();
+        }
+    });
+})();
 
 // ========================================
 // Event Listeners

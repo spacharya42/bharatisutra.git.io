@@ -147,6 +147,7 @@ Jane	jane@example.com	Inactive
 - **Secure Storage**: Passwords validated before note display
 - **Unlock Prompt**: Clean UI for password entry
 - **Session Locking**: Option to lock protected notes after session timeout
+- **Content Protection**: Prevent selection, copying, downloading and printing when enabled (`meta.protection: 'YES' | 'NO'`).
 
 ### 🎯 User Interface
 - **Clean Design**: Minimal, distraction-free reading experience
@@ -416,7 +417,8 @@ The application automatically:
 {
   id: "sensitive-note",
   name: "Confidential Data",
-  meta: { password: "mySecurePassword" },
+  // `protection` can be 'YES' or 'NO'. When 'YES' selection/copy/download/print are disabled.
+  meta: { password: "mySecurePassword", protection: 'YES' },
   content: "# Secret Content\nThis requires a password to view"
 }
 ```
@@ -427,6 +429,32 @@ The application automatically:
 3. Enter the correct password
 4. Note content displays after verification
 5. Wrong password shows error message
+
+### Content Protection (select / copy / print control)
+
+In addition to password protection, notes support a `protection` meta flag which controls whether the content may be selected, copied, downloaded or printed.
+
+- Type: `meta.protection` — string, either `'YES'` or `'NO'`.
+- Default: `'NO'` (content may be selected, copied, downloaded and printed).
+- When `'YES'`:
+  - Text selection and clipboard copy are blocked inside the note view.
+  - Table export/copy buttons are disabled for protected content.
+  - Images and media become non-draggable and links are made non-clickable.
+  - Printing hides the protected content and shows a print notice instead.
+  - A protection badge (🛡️) appears beside the lock icon in the sidebar to indicate content-level protection.
+
+Example:
+```javascript
+// Note that is password-protected and also content-protected
+{
+  id: 'sensitive-note',
+  name: 'Confidential Data',
+  meta: { password: 'mySecurePassword', protection: 'YES' },
+  content: '# Secret Content\nSensitive data here.'
+}
+```
+
+Notes with `protection: 'NO'` behave as before — users can select, copy, download and print the content.
 
 ### Heading Navigation
 
@@ -801,7 +829,8 @@ notes.set('chapter-1', {
   id: 'chapter-1',
   name: 'Chapter 1: Introduction',
   meta: {
-    password: null
+    password: null,
+    protection: 'NO'
   },
   content: `# Chapter 1
 Content here...`
@@ -812,7 +841,8 @@ notes.set('secrets', {
   id: 'secrets',
   name: 'Confidential Notes',
   meta: {
-    password: 'securePassword123'
+    password: 'securePassword123',
+    protection: 'YES'
   },
   content: `# Secret Content`
 });
