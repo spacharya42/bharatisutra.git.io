@@ -147,7 +147,7 @@ Jane	jane@example.com	Inactive
 - **Secure Storage**: Passwords validated before note display
 - **Unlock Prompt**: Clean UI for password entry
 - **Session Locking**: Option to lock protected notes after session timeout
-- **Content Protection**: Prevent selection, copying, downloading and printing when enabled (`meta.protection: 'YES' | 'NO'`).
+- **Content Protection**: Prevent selection, copying, downloading and printing when enabled (`meta.protection: "YES" | "NO"`).
 
 ### 🎯 User Interface
 - **Clean Design**: Minimal, distraction-free reading experience
@@ -418,7 +418,7 @@ The application automatically:
   id: "sensitive-note",
   name: "Confidential Data",
   // `protection` can be 'YES' or 'NO'. When 'YES' selection/copy/download/print are disabled.
-  meta: { password: "mySecurePassword", protection: 'YES' },
+  meta: { password: "mySecurePassword", protection: "YES" },
   content: "# Secret Content\nThis requires a password to view"
 }
 ```
@@ -449,12 +449,12 @@ Example:
 {
   id: 'sensitive-note',
   name: 'Confidential Data',
-  meta: { password: 'mySecurePassword', protection: 'YES' },
+  meta: { password: 'mySecurePassword', protection: "YES" },
   content: '# Secret Content\nSensitive data here.'
 }
 ```
 
-Notes with `protection: 'NO'` behave as before — users can select, copy, download and print the content.
+Notes with `protection: "NO"` behave as before — users can select, copy, download and print the content.
 
 ### Heading Navigation
 
@@ -830,7 +830,7 @@ notes.set('chapter-1', {
   name: 'Chapter 1: Introduction',
   meta: {
     password: null,
-    protection: 'NO'
+    protection: "NO"
   },
   content: `# Chapter 1
 Content here...`
@@ -842,7 +842,7 @@ notes.set('secrets', {
   name: 'Confidential Notes',
   meta: {
     password: 'securePassword123',
-    protection: 'YES'
+    protection: "YES"
   },
   content: `# Secret Content`
 });

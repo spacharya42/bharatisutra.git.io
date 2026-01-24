@@ -254,7 +254,7 @@
         /* Protection styles: disable selection, image/link interaction and printing for protected content */
         .nav-item-protect { margin-left: 6px; font-size: 12px; color: var(--accent-purple); }
         .protected-content { user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; }
-        .protected-content img, .protected-content video { pointer-events: none; user-drag: none; -webkit-user-drag: none; }
+        .protected-content img, .protected-content video { pointer-events: none; -webkit-user-drag: none; }
         .protected-content a { pointer-events: none; color: inherit; text-decoration: none; }
         .protected-print-notice { display: none; font-family: var(--font-mono); font-size: 13px; color: var(--accent-red); padding: 8px 0; }
         @media print { .protected-content { display: none !important; } .protected-print-notice { display: block !important; } }
@@ -331,7 +331,7 @@
 // Sample Data
 // ========================================
 window.readmeContent = `# 📚 Markdown Notes Viewer\n\nWelcome to the Markdown Notes Viewer!\n\n## Features\n\n- Multi-level nested navigation\n- Password-protected notes\n- Combined views (U0, U01)\n- Public All Notes view\n- Advanced table filtering\n- Nepali/Devanagari search\n\n## Usage\n\nClick notes in the sidebar to view them.`;
-window.readmeMeta = { name: "README", emoji: "📘", password: null, protection: 'NO' };
+window.readmeMeta = { name: "README", emoji: "📘", password: null, protection: "NO" };
 
 window.groupUMeta = { name: "JavaScript & React", emoji: "🟨", description: "Frontend docs" };
 window.groupVMeta = { name: "Python & Data", emoji: "🐍", description: "Backend docs" };
@@ -351,37 +351,37 @@ window.combinedV02Meta = { name: "Data Collection", emoji: "📊", description: 
 window.publicAllMeta = { name: "Public All Notes", emoji: "🌐", description: "All public notes" };
 
 window.noteU11Content = `# Introduction to JavaScript\n\n## Overview\nJavaScript is versatile.\n\n## Features Table\n\n| Feature | Type | Supported |\n|---------|------|----------|\n| Variables | let/const | Yes |\n| Functions | Arrow | Yes |\n| Classes | ES6 | Yes |\n| Modules | ESM | Yes |\n| Async | Promise | Yes |`;
-window.noteU11Meta = { name: "JS Basics", emoji: "📒", password: null, protection: 'NO' };
+window.noteU11Meta = { name: "JS Basics", emoji: "📒", password: null, protection: "NO" };
 
 window.noteU12Content = `# Advanced JavaScript\n\n## Closures\nClosures capture scope.\n\n## Performance\n\n| Method | Speed | Memory |\n|--------|-------|--------|\n| Callbacks | Fast | Low |\n| Promises | Medium | Medium |\n| Async/Await | Medium | Medium |`;
-window.noteU12Meta = { name: "JS Advanced", emoji: "📗", password: null, protection: 'NO' };
+window.noteU12Meta = { name: "JS Advanced", emoji: "📗", password: null, protection: "NO" };
 
 window.noteU13Content = `# Security Patterns (Locked)\n\n## Auth Table\n\n| Method | Level |\n|--------|-------|\n| JWT | High |\n| OAuth | Very High |`;
-window.noteU13Meta = { name: "Security", emoji: "🔒", password: "secret123", protection: 'YES' };
+window.noteU13Meta = { name: "Security", emoji: "🔒", password: "secret123", protection: "YES" };
 
 window.noteU21Content = `# React Fundamentals\n\n## Components\nBuilding blocks of React.\n\n## Comparison\n\n| Feature | Class | Functional |\n|---------|-------|------------|\n| State | this.state | useState |\n| Lifecycle | methods | useEffect |\n\n## Resources\n\n| Resource | Link | Type |\n|----------|------|------|\n| Official Docs | https://react.dev | External |\n| Tutorial | https://react.dev/learn | External |\n| Community | https://github.com/facebook/react | Repository |`;
-window.noteU21Meta = { name: "React Basics", emoji: "⚛️", password: null, protection: 'NO' };
+window.noteU21Meta = { name: "React Basics", emoji: "⚛️", password: null, protection: "YES" };
 
 window.noteU22Content = `# State Management\n\n## Solutions\n\n| Library | Size | Learning |\n|---------|------|----------|\n| Redux | Large | Steep |\n| MobX | Medium | Medium |\n| Zustand | Small | Easy |\n\n## Gallery\n\n| Title | Caption | Subcaption | URL |\n|-------|---------|------------|-----|\n| React Logo | Official React brand | Modern UI library | https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1024px-React-icon.svg.png |\n| Vue Framework | Progressive framework | Alternative to React | https://vuejs.org/images/logo.png |\n| Angular Icon | Google framework | Complete solution | https://angular.io/assets/images/logos/angular/angular.svg |`;
-window.noteU22Meta = { name: "State Mgmt", emoji: "🔄", password: "123", protection: 'YES' };
+window.noteU22Meta = { name: "State Mgmt", emoji: "🔄", password: "123", protection: "YES" };
 
 window.noteV11Content = `# Python Basics\n\n## Comparison\n\n| Feature | Python | Java |\n|---------|--------|------|\n| Typing | Dynamic | Static |\n| Syntax | Clean | Verbose |`;
-window.noteV11Meta = { name: "Python Intro", emoji: "🐍", password: null, protection: 'NO' };
+window.noteV11Meta = { name: "Python Intro", emoji: "🐍", password: null, protection: "NO" };
 
 window.noteV12Content = `# Python OOP\n\n## Concepts\n\n| Concept | Description |\n|---------|-------------|\n| Encapsulation | Data hiding |\n| Inheritance | Code reuse |`;
-window.noteV12Meta = { name: "Python OOP", emoji: "🎯", password: null, protection: 'NO' };
+window.noteV12Meta = { name: "Python OOP", emoji: "🎯", password: null, protection: "NO" };
 
 window.noteV13Content = `# API Keys (Locked)\n\n## Keys\n\n| Env | Level |\n|-----|-------|\n| Prod | Full |`;
-window.noteV13Meta = { name: "API Keys", emoji: "🔐", password: "admin456", protection: 'YES' };
+window.noteV13Meta = { name: "API Keys", emoji: "🔐", password: "123", protection: "YES" };
 
 window.noteV21Content = `# Data Science\n\n## Libraries\n\n| Library | Purpose | Performance |\n|---------|---------|-------------|\n| NumPy | Arrays | Excellent |\n| Pandas | DataFrames | Good |\n| Matplotlib | Plotting | Good |`;
-window.noteV21Meta = { name: "Data Science", emoji: "📊", password: null, protection: 'NO' };
+window.noteV21Meta = { name: "Data Science", emoji: "📊", password: null, protection: "NO" };
 
 window.noteW11Content = `# नेपाली भाषा\n\n## शिव को कथा\nशिव देवता हुन्। सीव पनि भनिन्छ।\n\n## शब्द तालिका\n\n| शब्द | अर्थ |\n|------|------|\n| शिव | देवता |\n| विकास | Progress |`;
-window.noteW11Meta = { name: "नेपाली भाषा", emoji: "🇳🇵", password: null, protection: 'NO' };
+window.noteW11Meta = { name: "नेपाली भाषा", emoji: "🇳🇵", password: null, protection: "NO" };
 
 window.noteW12Content = `# देवनागरी\n\n## वर्णमाला\nक ख ग घ ङ\n\n## तालिका\n\n| वर्ग | वर्णहरू |\n|------|--------|\n| क वर्ग | क ख ग घ ङ |`;
-window.noteW12Meta = { name: "देवनागरी", emoji: "📜", password: null, protection: 'NO' };
+window.noteW12Meta = { name: "देवनागरी", emoji: "📜", password: null, protection: "NO" };
     </script>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
     <script>
