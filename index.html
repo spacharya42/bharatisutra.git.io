@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Notes Viewer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --bg-hover: #30363d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #d29922;
+            --accent-red: #f85149;
+            --accent-purple: #a371f7;
+            --accent-cyan: #39c5cf;
+            --border-color: #30363d;
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-serif: 'Source Serif 4', Georgia, serif;
+            --highlight-bg: #ffe066;
+            --highlight-active: #ff6b6b;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: var(--font-serif); background: var(--bg-primary); color: var(--text-primary); line-height: 1.7; min-height: 100vh; }
+        .app-container { display: flex; min-height: 100vh; }
+        .sidebar { width: 340px; min-width: 340px; background: var(--bg-secondary); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; }
+        .sidebar-header { padding: 24px; border-bottom: 1px solid var(--border-color); }
+        .sidebar-logo { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--accent-blue); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+        .sidebar-title { font-size: 22px; font-weight: 600; color: var(--text-primary); }
+        .nav-container { flex: 1; overflow-y: auto; padding: 16px; }
+        .master-toc-container { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 16px; overflow: hidden; }
+        .master-toc-header { display: flex; align-items: center; padding: 12px 16px; cursor: pointer; transition: background 0.2s ease; user-select: none; border-bottom: 1px solid var(--border-color); }
+        .master-toc-header:hover { background: var(--bg-hover); }
+        .master-toc-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-size: 14px; transition: transform 0.2s ease; }
+        .master-toc-container.open > .master-toc-header .master-toc-icon { transform: rotate(90deg); }
+        .master-toc-title { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--accent-purple); flex: 1; }
+        .master-toc-content { display: none; padding: 8px 12px; max-height: 400px; overflow-y: auto; }
+        .master-toc-container.open > .master-toc-content { display: block; }
+        .master-toc-note { margin-bottom: 12px; }
+        .master-toc-note-title { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-blue); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 4px 8px; border-radius: var(--radius-sm); transition: background 0.2s ease; }
+        .master-toc-note-title:hover { background: var(--bg-hover); }
+        .master-toc-heading { font-size: 12px; color: var(--text-secondary); padding: 3px 8px 3px 24px; cursor: pointer; border-radius: var(--radius-sm); transition: all 0.2s ease; display: block; text-decoration: none; }
+        .master-toc-heading:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .master-toc-heading.level-2 { padding-left: 36px; font-size: 11px; }
+        .special-nav-item { display: flex; align-items: center; padding: 10px 16px; margin-bottom: 12px; border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s ease; font-family: var(--font-mono); font-size: 13px; }
+        .special-nav-item:hover { transform: translateX(4px); }
+        .special-nav-item.active { color: var(--bg-primary) !important; }
+        .readme-item { background: linear-gradient(135deg, rgba(88, 166, 255, 0.1), rgba(163, 113, 247, 0.1)); border: 1px solid var(--accent-blue); color: var(--accent-blue); }
+        .readme-item:hover { background: linear-gradient(135deg, rgba(88, 166, 255, 0.2), rgba(163, 113, 247, 0.2)); }
+        .readme-item.active { background: var(--accent-blue); }
+        .public-all-item { background: linear-gradient(135deg, rgba(63, 185, 80, 0.1), rgba(57, 197, 207, 0.1)); border: 1px solid var(--accent-green); color: var(--accent-green); }
+        .public-all-item:hover { background: linear-gradient(135deg, rgba(63, 185, 80, 0.2), rgba(57, 197, 207, 0.2)); }
+        .public-all-item.active { background: var(--accent-green); }
+        .special-nav-item-emoji { margin-right: 10px; font-size: 16px; }
+        .main-content { flex: 1; margin-left: 340px; display: flex; flex-direction: column; }
+        .top-bar { position: sticky; top: 0; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 16px 32px; z-index: 50; display: flex; align-items: center; gap: 16px; }
+        .breadcrumb { font-family: var(--font-mono); font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; }
+        .breadcrumb-item { color: var(--text-muted); }
+        .breadcrumb-item.active { color: var(--accent-blue); }
+        .breadcrumb-separator { color: var(--text-muted); }
+        .search-container { flex: 1; max-width: 500px; margin-left: auto; }
+        .search-wrapper { position: relative; display: flex; align-items: center; gap: 8px; }
+        .search-input { flex: 1; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 10px 40px 10px 16px; font-family: var(--font-mono); font-size: 13px; color: var(--text-primary); transition: all 0.2s ease; }
+        .search-input:focus { outline: none; border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15); }
+        .search-input::placeholder { color: var(--text-muted); }
+        .search-icon { position: absolute; right: 12px; color: var(--text-muted); pointer-events: none; }
+        .search-nav { display: flex; align-items: center; gap: 4px; opacity: 0; transition: opacity 0.2s ease; }
+        .search-nav.visible { opacity: 1; }
+        .search-counter { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); padding: 0 8px; min-width: 70px; text-align: center; }
+        .search-btn { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 6px 10px; cursor: pointer; color: var(--text-secondary); transition: all 0.2s ease; }
+        .search-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .clear-search-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; display: none; }
+        .clear-search-btn.visible { display: block; }
+        .content-area { flex: 1; padding: 32px; max-width: 1200px; }
+        .nav-group { margin-bottom: 8px; }
+        .nav-dropdown { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; }
+        .nav-dropdown-header { display: flex; align-items: center; padding: 12px 16px; cursor: pointer; transition: background 0.2s ease; user-select: none; }
+        .nav-dropdown-header:hover { background: var(--bg-hover); }
+        .nav-dropdown-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-size: 14px; transition: transform 0.2s ease; }
+        .nav-dropdown.open > .nav-dropdown-header .nav-dropdown-icon { transform: rotate(90deg); }
+        .nav-dropdown-title { font-family: var(--font-mono); font-size: 14px; font-weight: 500; color: var(--text-primary); flex: 1; }
+        .nav-dropdown-badge { background: var(--accent-blue); color: var(--bg-primary); font-family: var(--font-mono); font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 10px; }
+        .nav-dropdown-content { display: none; padding: 4px 8px 8px; }
+        .nav-dropdown.open > .nav-dropdown-content { display: block; }
+        .nav-dropdown .nav-dropdown { background: transparent; border: none; margin-left: 8px; }
+        .nav-dropdown .nav-dropdown .nav-dropdown-header { padding: 8px 12px; border-radius: var(--radius-sm); }
+        .nav-item { display: flex; align-items: center; padding: 8px 12px; margin: 2px 0; margin-left: 16px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s ease; font-family: var(--font-mono); font-size: 13px; color: var(--text-secondary); }
+        .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .nav-item.active { background: rgba(88, 166, 255, 0.15); color: var(--accent-blue); }
+        .nav-item-emoji { margin-right: 8px; font-size: 14px; }
+        .nav-item-name { flex: 1; }
+        .nav-item-lock { color: var(--accent-orange); font-size: 12px; }
+        .nav-item-unlock { color: var(--accent-green); font-size: 12px; }
+        .nav-item.combined { color: var(--accent-purple); font-style: italic; }
+        .content-header { margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--border-color); }
+        .content-title { font-size: 32px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+        .content-title-emoji { font-size: 28px; }
+        .content-meta { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+        .toc-container { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 32px; }
+        .toc-title { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .toc-list { list-style: none; columns: 2; column-gap: 32px; }
+        .toc-list.single-column { columns: 1; }
+        .toc-item { margin: 6px 0; break-inside: avoid; }
+        .toc-link { color: var(--text-secondary); text-decoration: none; font-size: 14px; transition: color 0.2s ease; display: inline-flex; align-items: center; gap: 8px; }
+        .toc-link:hover { color: var(--accent-blue); }
+        .toc-link::before { content: '›'; color: var(--text-muted); }
+        .toc-item.level-1 { margin-left: 0; font-weight: 500; }
+        .toc-item.level-2 { margin-left: 16px; }
+        .toc-item.level-3, .toc-item.level-4, .toc-item.level-5, .toc-item.level-6 { display: none; }
+        .toc-group-header { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--accent-purple); text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 8px; padding: 4px 0; border-bottom: 1px solid var(--border-color); list-style: none; }
+        .toc-group-header:first-child { margin-top: 0; }
+        .heading-toc-link { color: var(--text-muted); text-decoration: none; font-size: 14px; margin-left: 8px; opacity: 0; transition: opacity 0.2s ease; }
+        .markdown-body h1:hover .heading-toc-link, .markdown-body h2:hover .heading-toc-link { opacity: 1; }
+        .heading-toc-link:hover { color: var(--accent-blue); }
+        .markdown-body { color: var(--text-primary); }
+        .markdown-body h1 { font-size: 28px; font-weight: 600; margin: 40px 0 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); scroll-margin-top: 100px; }
+        .markdown-body h2 { font-size: 22px; font-weight: 600; margin: 32px 0 12px; color: var(--accent-blue); scroll-margin-top: 100px; }
+        .markdown-body h3 { font-size: 18px; font-weight: 600; margin: 24px 0 10px; scroll-margin-top: 100px; }
+        .markdown-body h4, .markdown-body h5, .markdown-body h6 { font-size: 16px; font-weight: 600; margin: 20px 0 8px; scroll-margin-top: 100px; }
+        .markdown-body p { margin: 16px 0; }
+        .markdown-body ul, .markdown-body ol { margin: 16px 0; padding-left: 28px; }
+        .markdown-body li { margin: 8px 0; }
+        .markdown-body code { font-family: var(--font-mono); font-size: 13px; background: var(--bg-tertiary); padding: 2px 6px; border-radius: var(--radius-sm); color: var(--accent-orange); }
+        .markdown-body pre { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; overflow-x: auto; margin: 16px 0; }
+        .markdown-body pre code { background: transparent; padding: 0; color: var(--text-primary); }
+        .markdown-body blockquote { border-left: 4px solid var(--accent-purple); padding-left: 16px; margin: 16px 0; color: var(--text-secondary); font-style: italic; }
+        .markdown-body a { color: var(--accent-blue); text-decoration: none; }
+        .markdown-body a:hover { text-decoration: underline; }
+        .markdown-body table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+        .markdown-body th, .markdown-body td { border: 1px solid var(--border-color); padding: 10px 14px; text-align: left; }
+        .markdown-body th { background: var(--bg-tertiary); font-weight: 600; }
+        .markdown-body hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
+        .markdown-body tr.filtered-out { display: none; }
+        .markdown-body tr.filter-match { background: rgba(88, 166, 255, 0.1); }
+        .search-highlight { background: var(--highlight-bg); color: #000; padding: 1px 2px; border-radius: 2px; }
+        .search-highlight.active { background: var(--highlight-active); color: #fff; box-shadow: 0 0 0 2px var(--highlight-active); }
+        .table-filter-wrapper { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; margin-bottom: 8px; }
+        .table-filter-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .table-filter-title { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 1px; }
+        .table-filter-toggle { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 4px 8px; font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); cursor: pointer; }
+        .table-filter-toggle:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .table-filter-rules { display: flex; flex-direction: column; gap: 6px; }
+        .filter-rule { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .filter-rule select, .filter-rule input { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 5px 8px; font-family: var(--font-mono); font-size: 11px; color: var(--text-primary); }
+        .filter-rule select:focus, .filter-rule input:focus { outline: none; border-color: var(--accent-blue); }
+        .filter-rule select { min-width: 100px; }
+        .filter-rule input { flex: 1; min-width: 120px; }
+        .filter-rule-remove { background: var(--accent-red); border: none; border-radius: var(--radius-sm); padding: 5px 8px; color: #fff; cursor: pointer; font-size: 11px; }
+        .filter-rule-remove:hover { filter: brightness(1.2); }
+        .filter-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+        .filter-btn { padding: 6px 12px; border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 11px; cursor: pointer; transition: all 0.2s ease; }
+        .filter-add-btn { background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-secondary); }
+        .filter-add-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .filter-apply-btn { background: var(--accent-blue); border: none; color: var(--bg-primary); }
+        .filter-apply-btn:hover { filter: brightness(1.1); }
+        .filter-clear-btn { background: var(--bg-tertiary); border: 1px solid var(--accent-red); color: var(--accent-red); }
+        .filter-clear-btn:hover { background: var(--accent-red); color: #fff; }
+        .filter-logic-select { background: var(--accent-purple) !important; color: #fff !important; border: none !important; font-weight: 600; }
+        .filter-results { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); margin-top: 6px; }
+        .password-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
+        .password-overlay.visible { opacity: 1; visibility: visible; }
+        .password-modal { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 32px; width: 100%; max-width: 400px; transform: translateY(20px); transition: transform 0.3s ease; }
+        .password-overlay.visible .password-modal { transform: translateY(0); }
+        .password-icon { font-size: 48px; text-align: center; margin-bottom: 16px; }
+        .password-title { font-size: 20px; font-weight: 600; text-align: center; margin-bottom: 8px; }
+        .password-subtitle { font-family: var(--font-mono); font-size: 13px; color: var(--text-secondary); text-align: center; margin-bottom: 24px; }
+        .password-input-wrapper { margin-bottom: 16px; }
+        .password-input { width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 16px; font-family: var(--font-mono); font-size: 14px; color: var(--text-primary); text-align: center; letter-spacing: 4px; }
+        .password-input:focus { outline: none; border-color: var(--accent-blue); }
+        .password-error { color: var(--accent-red); font-size: 13px; text-align: center; margin-bottom: 16px; display: none; }
+        .password-error.visible { display: block; }
+        .password-buttons { display: flex; gap: 12px; }
+        .password-btn { flex: 1; padding: 12px; border-radius: var(--radius-md); font-family: var(--font-mono); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; }
+        .password-btn-cancel { background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-secondary); }
+        .password-btn-cancel:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .password-btn-submit { background: var(--accent-blue); border: none; color: var(--bg-primary); }
+        .password-btn-submit:hover { filter: brightness(1.1); }
+        .back-to-top { position: fixed; bottom: 32px; right: 32px; width: 48px; height: 48px; background: var(--accent-blue); border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--bg-primary); font-size: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); opacity: 0; visibility: hidden; transform: translateY(20px); transition: all 0.3s ease; z-index: 90; }
+        .back-to-top.visible { opacity: 1; visibility: visible; transform: translateY(0); }
+        .back-to-top:hover { transform: translateY(-4px); }
+        .loading-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 64px; color: var(--text-secondary); }
+        .loading-spinner { width: 40px; height: 40px; border: 3px solid var(--border-color); border-top-color: var(--accent-blue); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 64px; text-align: center; }
+        .empty-state-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.5; }
+        .empty-state-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+        .empty-state-text { color: var(--text-secondary); font-size: 14px; }
+        .pyodide-loading { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-primary); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; transition: opacity 0.5s ease; }
+        .pyodide-loading.hidden { opacity: 0; pointer-events: none; }
+        .pyodide-logo { font-size: 64px; margin-bottom: 24px; animation: pulse 2s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        .pyodide-text { font-family: var(--font-mono); font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; }
+        .pyodide-progress { width: 200px; height: 4px; background: var(--bg-tertiary); border-radius: 2px; overflow: hidden; }
+        .pyodide-progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)); width: 0%; transition: width 0.3s ease; }
+        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } .content-area { padding: 16px; } .top-bar { padding: 12px 16px; } .search-container { display: none; } .mobile-menu-btn { display: flex; } .toc-list { columns: 1; } }
+        .mobile-menu-btn { display: none; background: transparent; border: none; color: var(--text-primary); font-size: 24px; cursor: pointer; padding: 4px; }
+    </style>
+</head>
+<body>
+    <div class="pyodide-loading" id="pyodideLoading">
+        <div class="pyodide-logo">📚</div>
+        <div class="pyodide-text">Initializing Markdown Engine...</div>
+        <div class="pyodide-progress"><div class="pyodide-progress-bar" id="pyodideProgress"></div></div>
+    </div>
+    <div class="password-overlay" id="passwordOverlay">
+        <div class="password-modal">
+            <div class="password-icon">🔐</div>
+            <div class="password-title">Protected Note</div>
+            <div class="password-subtitle" id="passwordNoteTitle">Enter password to unlock</div>
+            <div class="password-input-wrapper"><input type="password" class="password-input" id="passwordInput" placeholder="••••••"></div>
+            <div class="password-error" id="passwordError">Incorrect password. Please try again.</div>
+            <div class="password-buttons">
+                <button class="password-btn password-btn-cancel" id="passwordCancel">Cancel</button>
+                <button class="password-btn password-btn-submit" id="passwordSubmit">Unlock</button>
+            </div>
+        </div>
+    </div>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">📖 Notes</div>
+                <div class="sidebar-title">Documentation</div>
+            </div>
+            <nav class="nav-container" id="navContainer">
+                <div class="special-nav-item readme-item" id="readmeItem" style="display: none;"><span class="special-nav-item-emoji">📘</span><span>README.md</span></div>
+                <div class="special-nav-item public-all-item" id="publicAllItem"><span class="special-nav-item-emoji">🌐</span><span>Public All Notes</span></div>
+                <div class="master-toc-container" id="masterTocContainer">
+                    <div class="master-toc-header" id="masterTocHeader"><span class="master-toc-icon">▶</span><span class="master-toc-title">📋 Master TOC</span></div>
+                    <div class="master-toc-content" id="masterTocContent"></div>
+                </div>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <header class="top-bar">
+                <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+                <div class="breadcrumb" id="breadcrumb"><span class="breadcrumb-item">Notes</span></div>
+                <div class="search-container">
+                    <div class="search-wrapper">
+                        <input type="text" class="search-input" id="searchInput" placeholder="Search in content... (Ctrl+F)">
+                        <span class="search-icon">🔍</span>
+                        <button class="clear-search-btn" id="clearSearch">✕</button>
+                    </div>
+                    <div class="search-nav" id="searchNav">
+                        <button class="search-btn" id="searchPrev" disabled>▲</button>
+                        <span class="search-counter" id="searchCounter">0 / 0</span>
+                        <button class="search-btn" id="searchNext" disabled>▼</button>
+                    </div>
+                </div>
+            </header>
+            <article class="content-area" id="contentArea">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📄</div>
+                    <div class="empty-state-title">Select a Note</div>
+                    <div class="empty-state-text">Choose a note from the sidebar to view its content</div>
+                </div>
+            </article>
+        </main>
+    </div>
+    <button class="back-to-top" id="backToTop">⬆</button>
+    <script>
+// ========================================
+// Sample Data
+// ========================================
+window.readmeContent = `# 📚 Markdown Notes Viewer\n\nWelcome to the Markdown Notes Viewer!\n\n## Features\n\n- Multi-level nested navigation\n- Password-protected notes\n- Combined views (U0, U01)\n- Public All Notes view\n- Advanced table filtering\n- Nepali/Devanagari search\n\n## Usage\n\nClick notes in the sidebar to view them.`;
+window.readmeMeta = { name: "README", emoji: "📘", password: null };
+
+window.groupUMeta = { name: "JavaScript & React", emoji: "🟨", description: "Frontend docs" };
+window.groupVMeta = { name: "Python & Data", emoji: "🐍", description: "Backend docs" };
+window.groupWMeta = { name: "Nepali Content", emoji: "🇳🇵", description: "नेपाली" };
+window.unitU1Meta = { name: "JS Fundamentals", emoji: "📗", description: "Core JS" };
+window.unitU2Meta = { name: "React Development", emoji: "⚛️", description: "React" };
+window.unitV1Meta = { name: "Python Basics", emoji: "🐍", description: "Python" };
+window.unitV2Meta = { name: "Data Science", emoji: "📊", description: "Data" };
+window.unitW1Meta = { name: "नेपाली", emoji: "📜", description: "Nepali" };
+window.combinedU0Meta = { name: "All JS & React", emoji: "🟨", description: "All Group U" };
+window.combinedV0Meta = { name: "All Python", emoji: "🐍", description: "All Group V" };
+window.combinedW0Meta = { name: "All Nepali", emoji: "🇳🇵", description: "All Group W" };
+window.combinedU01Meta = { name: "JS Collection", emoji: "📗", description: "Unit U1" };
+window.combinedU02Meta = { name: "React Collection", emoji: "⚛️", description: "Unit U2" };
+window.combinedV01Meta = { name: "Python Collection", emoji: "🐍", description: "Unit V1" };
+window.combinedV02Meta = { name: "Data Collection", emoji: "📊", description: "Unit V2" };
+window.publicAllMeta = { name: "Public All Notes", emoji: "🌐", description: "All public notes" };
+
+window.noteU11Content = `# Introduction to JavaScript\n\n## Overview\nJavaScript is versatile.\n\n## Features Table\n\n| Feature | Type | Supported |\n|---------|------|----------|\n| Variables | let/const | Yes |\n| Functions | Arrow | Yes |\n| Classes | ES6 | Yes |\n| Modules | ESM | Yes |\n| Async | Promise | Yes |`;
+window.noteU11Meta = { name: "JS Basics", emoji: "📒", password: null };
+
+window.noteU12Content = `# Advanced JavaScript\n\n## Closures\nClosures capture scope.\n\n## Performance\n\n| Method | Speed | Memory |\n|--------|-------|--------|\n| Callbacks | Fast | Low |\n| Promises | Medium | Medium |\n| Async/Await | Medium | Medium |`;
+window.noteU12Meta = { name: "JS Advanced", emoji: "📗", password: null };
+
+window.noteU13Content = `# Security Patterns (Locked)\n\n## Auth Table\n\n| Method | Level |\n|--------|-------|\n| JWT | High |\n| OAuth | Very High |`;
+window.noteU13Meta = { name: "Security", emoji: "🔒", password: "secret123" };
+
+window.noteU21Content = `# React Fundamentals\n\n## Components\nBuilding blocks of React.\n\n## Comparison\n\n| Feature | Class | Functional |\n|---------|-------|------------|\n| State | this.state | useState |\n| Lifecycle | methods | useEffect |`;
+window.noteU21Meta = { name: "React Basics", emoji: "⚛️", password: null };
+
+window.noteU22Content = `# State Management\n\n## Solutions\n\n| Library | Size | Learning |\n|---------|------|----------|\n| Redux | Large | Steep |\n| MobX | Medium | Medium |\n| Zustand | Small | Easy |`;
+window.noteU22Meta = { name: "State Mgmt", emoji: "🔄", password: null };
+
+window.noteV11Content = `# Python Basics\n\n## Comparison\n\n| Feature | Python | Java |\n|---------|--------|------|\n| Typing | Dynamic | Static |\n| Syntax | Clean | Verbose |`;
+window.noteV11Meta = { name: "Python Intro", emoji: "🐍", password: null };
+
+window.noteV12Content = `# Python OOP\n\n## Concepts\n\n| Concept | Description |\n|---------|-------------|\n| Encapsulation | Data hiding |\n| Inheritance | Code reuse |`;
+window.noteV12Meta = { name: "Python OOP", emoji: "🎯", password: null };
+
+window.noteV13Content = `# API Keys (Locked)\n\n## Keys\n\n| Env | Level |\n|-----|-------|\n| Prod | Full |`;
+window.noteV13Meta = { name: "API Keys", emoji: "🔐", password: "admin456" };
+
+window.noteV21Content = `# Data Science\n\n## Libraries\n\n| Library | Purpose | Performance |\n|---------|---------|-------------|\n| NumPy | Arrays | Excellent |\n| Pandas | DataFrames | Good |\n| Matplotlib | Plotting | Good |`;
+window.noteV21Meta = { name: "Data Science", emoji: "📊", password: null };
+
+window.noteW11Content = `# नेपाली भाषा\n\n## शिव को कथा\nशिव देवता हुन्। सीव पनि भनिन्छ।\n\n## शब्द तालिका\n\n| शब्द | अर्थ |\n|------|------|\n| शिव | देवता |\n| विकास | Progress |`;
+window.noteW11Meta = { name: "नेपाली भाषा", emoji: "🇳🇵", password: null };
+
+window.noteW12Content = `# देवनागरी\n\n## वर्णमाला\nक ख ग घ ङ\n\n## तालिका\n\n| वर्ग | वर्णहरू |\n|------|--------|\n| क वर्ग | क ख ग घ ङ |`;
+window.noteW12Meta = { name: "देवनागरी", emoji: "📜", password: null };
+    </script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    <script>
+// ========================================
+// Application State
+// ========================================
+const AppState = {
+    pyodide: null, notes: new Map(), groups: new Map(), groupMeta: new Map(),
+    unitMeta: new Map(), combinedMeta: new Map(), currentNote: null,
+    unlockedNotes: new Set(), searchMatches: [], currentMatchIndex: -1,
+    originalContent: '', hasReadme: false
+};
+
+// ========================================
+// Nepali Normalizer
+// ========================================
+const NepaliNormalizer = {
+    vowelMap: { 'ी': 'ि', 'ू': 'ु' },
+    sibilantMap: { 'श': 'स', 'ष': 'स' },
+    nasalMap: { 'ङ': 'न', 'ण': 'न', 'ञ': 'न', 'ं': 'न्' },
+    vaBaMap: { 'व': 'ब' },
+    normalize(text) {
+        if (!text) return '';
+        let n = text.normalize('NFC').replace(/\u200D/g, '').replace(/\u200C/g, '');
+        for (const [f, t] of Object.entries(this.vowelMap)) n = n.split(f).join(t);
+        for (const [f, t] of Object.entries(this.sibilantMap)) n = n.split(f).join(t);
+        for (const [f, t] of Object.entries(this.nasalMap)) n = n.split(f).join(t);
+        for (const [f, t] of Object.entries(this.vaBaMap)) n = n.split(f).join(t);
+        return n;
+    },
+    isDevanagari(text) { return /[\u0900-\u097F]/.test(text); },
+    mapToOriginal(normPos, original, normalized) {
+        if (normPos <= 0) return 0;
+        if (normPos >= normalized.length) return original.length;
+        let origIdx = 0, normIdx = 0;
+        while (normIdx < normPos && origIdx < original.length) {
+            if (original[origIdx] === '\u200D' || original[origIdx] === '\u200C') { origIdx++; continue; }
+            origIdx++; normIdx++;
+        }
+        while (origIdx < original.length && (original[origIdx] === '\u200D' || original[origIdx] === '\u200C')) origIdx++;
+        return origIdx;
+    }
+};
+
+// ========================================
+// Discovery & Init
+// ========================================
+function discoverNotes() {
+    const notePattern = /^note([A-Z])(\d)(\d)Content$/;
+    if (window.readmeContent) AppState.hasReadme = true;
+    for (const key of Object.keys(window)) {
+        if (key.match(/^group([A-Z])Meta$/)) AppState.groupMeta.set(key.match(/^group([A-Z])Meta$/)[1], window[key]);
+        if (key.match(/^unit([A-Z])(\d)Meta$/)) { const m = key.match(/^unit([A-Z])(\d)Meta$/); AppState.unitMeta.set(`${m[1]}${m[2]}`, window[key]); }
+        if (key.match(/^combined([A-Z])(\d+)Meta$/)) { const m = key.match(/^combined([A-Z])(\d+)Meta$/); AppState.combinedMeta.set(`${m[1]}${m[2]}`, window[key]); }
+    }
+    for (const key of Object.keys(window)) {
+        const match = key.match(notePattern);
+        if (match) {
+            const [, group, unit, noteNum] = match;
+            const noteId = `${group}${unit}${noteNum}`;
+            const meta = window[`note${noteId}Meta`] || { name: noteId, emoji: '📄', password: null };
+            AppState.notes.set(noteId, { id: noteId, group, unit: parseInt(unit), noteNum: parseInt(noteNum), content: window[key], meta });
+            if (!AppState.groups.has(group)) AppState.groups.set(group, new Map());
+            if (!AppState.groups.get(group).has(parseInt(unit))) AppState.groups.get(group).set(parseInt(unit), []);
+            AppState.groups.get(group).get(parseInt(unit)).push(noteId);
+        }
+    }
+    for (const [g, units] of AppState.groups) for (const [u, notes] of units) notes.sort((a, b) => AppState.notes.get(a).noteNum - AppState.notes.get(b).noteNum);
+}
+
+async function initPyodide() {
+    const bar = document.getElementById('pyodideProgress'), overlay = document.getElementById('pyodideLoading');
+    try {
+        bar.style.width = '20%';
+        AppState.pyodide = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/" });
+        bar.style.width = '60%';
+        await AppState.pyodide.loadPackage('micropip');
+        await AppState.pyodide.pyimport('micropip').install('markdown');
+        bar.style.width = '100%';
+        await AppState.pyodide.runPythonAsync(`import markdown\ndef convert_markdown(text):\n    md = markdown.Markdown(extensions=['toc','fenced_code','tables','nl2br'])\n    return {'html': md.convert(text), 'toc': md.toc}`);
+        setTimeout(() => overlay.classList.add('hidden'), 500);
+        return true;
+    } catch (e) {
+        console.error('Pyodide failed:', e);
+        overlay.querySelector('.pyodide-text').textContent = 'Using fallback...';
+        setTimeout(() => overlay.classList.add('hidden'), 1000);
+        return false;
+    }
+}
+
+async function renderMarkdown(content) {
+    if (AppState.pyodide) {
+        try {
+            AppState.pyodide.globals.set('markdown_input', content);
+            return (await AppState.pyodide.runPythonAsync(`convert_markdown(markdown_input)`)).toJs();
+        } catch (e) { return fallbackRender(content); }
+    }
+    return fallbackRender(content);
+}
+
+function fallbackRender(content) {
+    let html = content.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/^#### (.+)$/gm, '<h4>$1</h4>').replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2>$1</h2>').replace(/^# (.+)$/gm, '<h1>$1</h1>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+        .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+        .replace(/^- (.+)$/gm, '<li>$1</li>').replace(/^---$/gm, '<hr>');
+    return { html, toc: '' };
+}
+
+// ========================================
+// Navigation
+// ========================================
+function buildNavigation() {
+    const nav = document.getElementById('navContainer'), readme = document.getElementById('readmeItem'),
+          publicAll = document.getElementById('publicAllItem'), masterToc = document.getElementById('masterTocContainer');
+    nav.innerHTML = '';
+    if (AppState.hasReadme) { readme.style.display = 'flex'; nav.appendChild(readme); }
+    nav.appendChild(publicAll);
+    nav.appendChild(masterToc);
+    for (const group of Array.from(AppState.groups.keys()).sort()) nav.appendChild(createGroupDropdown(group));
+    buildMasterTOC();
+}
+
+function getGroupMeta(g) { return AppState.groupMeta.get(g) || { name: `Group ${g}`, emoji: '📁', description: '' }; }
+function getUnitMeta(g, u) { return AppState.unitMeta.get(`${g}${u}`) || { name: `Unit ${g}${u}`, emoji: '📂', description: '' }; }
+function getCombinedMeta(k) { return AppState.combinedMeta.get(k) || { name: k, emoji: '📚', description: '' }; }
+
+function extractHeadings(content) {
+    const h = [], re = /^(#{1,2}) (.+)$/gm; let m;
+    while ((m = re.exec(content)) !== null) h.push({ level: m[1].length, text: m[2].trim(), id: m[2].toLowerCase().replace(/[^a-z0-9\u0900-\u097F]+/g, '-').replace(/^-|-$/g, '') });
+    return h;
+}
+
+function buildMasterTOC() {
+    const c = document.getElementById('masterTocContent'); c.innerHTML = '';
+    for (const group of Array.from(AppState.groups.keys()).sort()) {
+        for (const unit of Array.from(AppState.groups.get(group).keys()).sort((a, b) => a - b)) {
+            for (const noteId of AppState.groups.get(group).get(unit)) {
+                const note = AppState.notes.get(noteId);
+                if (note.meta.password !== null && !AppState.unlockedNotes.has(noteId)) continue;
+                const headings = extractHeadings(note.content);
+                if (headings.length === 0) continue;
+                const div = document.createElement('div'); div.className = 'master-toc-note'; div.dataset.noteId = noteId;
+                const title = document.createElement('div'); title.className = 'master-toc-note-title';
+                title.innerHTML = `<span>${note.meta.emoji}</span> ${note.meta.name}`;
+                title.addEventListener('click', () => loadNote(noteId)); div.appendChild(title);
+                for (const h of headings) {
+                    const link = document.createElement('a'); link.className = `master-toc-heading level-${h.level}`;
+                    link.textContent = h.text; link.href = '#';
+                    link.addEventListener('click', e => { e.preventDefault(); loadNoteAndScrollToHeading(noteId, h.id); });
+                    div.appendChild(link);
+                }
+                c.appendChild(div);
+            }
+        }
+    }
+    if (c.children.length === 0) c.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:8px;">No public notes</div>';
+}
+
+function createGroupDropdown(group) {
+    const gm = getGroupMeta(group), cm = getCombinedMeta(`${group}0`);
+    const wrap = document.createElement('div'); wrap.className = 'nav-group';
+    const dd = document.createElement('div'); dd.className = 'nav-dropdown';
+    dd.innerHTML = `<div class="nav-dropdown-header"><span class="nav-dropdown-icon">▶</span><span class="nav-dropdown-title">${gm.emoji} ${gm.name}</span><span class="nav-dropdown-badge">${countPublicNotes(group)}</span></div><div class="nav-dropdown-content"><div class="nav-item combined" data-combined="${group}0"><span class="nav-item-emoji">${cm.emoji}</span><span class="nav-item-name">${group}0 - ${cm.name}</span></div></div>`;
+    const content = dd.querySelector('.nav-dropdown-content');
+    for (const unit of Array.from(AppState.groups.get(group).keys()).sort((a, b) => a - b)) content.appendChild(createUnitDropdown(group, unit));
+    dd.querySelector('.nav-dropdown-header').addEventListener('click', () => dd.classList.toggle('open'));
+    dd.querySelector('.nav-item.combined').addEventListener('click', e => { e.stopPropagation(); loadCombinedView(group, null); });
+    wrap.appendChild(dd); return wrap;
+}
+
+function createUnitDropdown(group, unit) {
+    const um = getUnitMeta(group, unit), cm = getCombinedMeta(`${group}0${unit}`);
+    const dd = document.createElement('div'); dd.className = 'nav-dropdown';
+    dd.innerHTML = `<div class="nav-dropdown-header"><span class="nav-dropdown-icon">▶</span><span class="nav-dropdown-title">${um.emoji} ${um.name}</span><span class="nav-dropdown-badge">${countPublicNotesInUnit(group, unit)}</span></div><div class="nav-dropdown-content"><div class="nav-item combined" data-combined="${group}0${unit}"><span class="nav-item-emoji">${cm.emoji}</span><span class="nav-item-name">${group}0${unit} - ${cm.name}</span></div></div>`;
+    const content = dd.querySelector('.nav-dropdown-content');
+    for (const noteId of AppState.groups.get(group).get(unit)) {
+        const note = AppState.notes.get(noteId), isLocked = note.meta.password !== null && !AppState.unlockedNotes.has(noteId), hasPwd = note.meta.password !== null;
+        const item = document.createElement('div'); item.className = 'nav-item'; item.dataset.noteId = noteId;
+        item.innerHTML = `<span class="nav-item-emoji">${note.meta.emoji}</span><span class="nav-item-name">${note.meta.name}</span>${hasPwd ? (isLocked ? '<span class="nav-item-lock">🔒</span>' : '<span class="nav-item-unlock">🔓</span>') : '<span class="nav-item-unlock">🔓</span>'}`;
+        item.addEventListener('click', e => { e.stopPropagation(); loadNote(noteId); });
+        content.appendChild(item);
+    }
+    dd.querySelector('.nav-dropdown-header').addEventListener('click', e => { e.stopPropagation(); dd.classList.toggle('open'); });
+    dd.querySelector('.nav-item.combined').addEventListener('click', e => { e.stopPropagation(); loadCombinedView(group, unit); });
+    return dd;
+}
+
+function countPublicNotes(g) { let c = 0; for (const n of AppState.groups.get(g).values()) for (const id of n) if (AppState.notes.get(id).meta.password === null || AppState.unlockedNotes.has(id)) c++; return c; }
+function countPublicNotesInUnit(g, u) { let c = 0; for (const id of AppState.groups.get(g).get(u)) if (AppState.notes.get(id).meta.password === null || AppState.unlockedNotes.has(id)) c++; return c; }
+
+// ========================================
+// Loading Content
+// ========================================
+async function loadReadme() {
+    if (!AppState.hasReadme) return;
+    AppState.currentNote = 'readme';
+    updateBreadcrumb({ meta: window.readmeMeta });
+    document.getElementById('contentArea').innerHTML = '<div class="loading-container"><div class="loading-spinner"></div><div>Loading...</div></div>';
+    const rendered = await renderMarkdown(window.readmeContent);
+    displayRenderedContent({ meta: window.readmeMeta }, rendered);
+    document.querySelectorAll('.nav-item,.special-nav-item').forEach(el => el.classList.remove('active'));
+    document.getElementById('readmeItem').classList.add('active');
+}
+
+async function loadNote(noteId) {
+    const note = AppState.notes.get(noteId); if (!note) return;
+    if (note.meta.password !== null && !AppState.unlockedNotes.has(noteId)) { showPasswordPrompt(noteId); return; }
+    AppState.currentNote = noteId;
+    updateActiveNavItem(noteId);
+    updateBreadcrumb(note);
+    document.getElementById('contentArea').innerHTML = '<div class="loading-container"><div class="loading-spinner"></div><div>Rendering...</div></div>';
+    const rendered = await renderMarkdown(note.content);
+    displayRenderedContent(note, rendered);
+}
+
+async function loadNoteAndScrollToHeading(noteId, headingId) {
+    await loadNote(noteId);
+    setTimeout(() => { const h = document.getElementById(headingId); if (h) h.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+}
+
+async function loadCombinedView(group, unit) {
+    document.getElementById('contentArea').innerHTML = '<div class="loading-container"><div class="loading-spinner"></div><div>Combining...</div></div>';
+    const notes = [], key = unit === null ? `${group}0` : `${group}0${unit}`, meta = getCombinedMeta(key);
+    if (unit === null) { for (const [u, ids] of AppState.groups.get(group)) for (const id of ids) { const n = AppState.notes.get(id); if (n.meta.password === null || AppState.unlockedNotes.has(id)) notes.push(n); } }
+    else { for (const id of AppState.groups.get(group).get(unit)) { const n = AppState.notes.get(id); if (n.meta.password === null || AppState.unlockedNotes.has(id)) notes.push(n); } }
+    updateBreadcrumb({ group, unit, meta });
+    if (notes.length === 0) { document.getElementById('contentArea').innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔒</div><div class="empty-state-title">No Public Notes</div></div>'; return; }
+    const combined = notes.map(n => n.content).join('\n\n---\n\n');
+    const rendered = await renderMarkdown(combined);
+    displayRenderedContent({ meta }, rendered, true, notes);
+}
+
+async function loadPublicAllNotes() {
+    document.getElementById('contentArea').innerHTML = '<div class="loading-container"><div class="loading-spinner"></div><div>Loading all...</div></div>';
+    const notes = [];
+    for (const group of Array.from(AppState.groups.keys()).sort())
+        for (const unit of Array.from(AppState.groups.get(group).keys()).sort((a, b) => a - b))
+            for (const id of AppState.groups.get(group).get(unit)) { const n = AppState.notes.get(id); if (n.meta.password === null || AppState.unlockedNotes.has(id)) notes.push(n); }
+    const meta = window.publicAllMeta || { name: 'Public All Notes', emoji: '🌐' };
+    updateBreadcrumb({ meta });
+    if (notes.length === 0) { document.getElementById('contentArea').innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔒</div><div class="empty-state-title">No Public Notes</div></div>'; return; }
+    const combined = notes.map(n => n.content).join('\n\n---\n\n');
+    const rendered = await renderMarkdown(combined);
+    displayRenderedContent({ meta }, rendered, true, notes);
+    document.querySelectorAll('.nav-item,.special-nav-item').forEach(el => el.classList.remove('active'));
+    document.getElementById('publicAllItem').classList.add('active');
+}
+
+function displayRenderedContent(note, rendered, isCombined = false, notesInCombined = []) {
+    const area = document.getElementById('contentArea');
+    AppState.originalContent = rendered.html || rendered.get('html');
+    const html = rendered.html || rendered.get('html');
+    const toc = isCombined && notesInCombined.length ? generateCombinedTOC(notesInCombined) : generateCustomTOC(html);
+    area.innerHTML = `<header class="content-header"><h1 class="content-title"><span class="content-title-emoji">${note.meta.emoji}</span>${note.meta.name}</h1><div class="content-meta">${note.meta.description || (isCombined ? `${notesInCombined.length} notes combined` : 'Individual note')}</div></header>${toc ? `<nav class="toc-container" id="toc-container"><div class="toc-title">📋 Table of Contents</div><ul class="toc-list${isCombined ? '' : ' single-column'}">${toc}</ul></nav>` : ''}<div class="markdown-body" id="markdownBody">${html}</div>`;
+    addHeadingIds();
+    setupTableFilters();
+    clearSearch();
+}
+
+function generateCombinedTOC(notes) {
+    let toc = '';
+    for (const note of notes) {
+        const headings = extractHeadings(note.content);
+        if (headings.length > 0) {
+            toc += `<li class="toc-group-header">${note.meta.emoji} ${note.meta.name}</li>`;
+            for (const h of headings) if (h.level <= 2) toc += `<li class="toc-item level-${h.level}"><a class="toc-link" href="#${h.id}">${h.text}</a></li>`;
+        }
+    }
+    return toc;
+}
+
+function generateCustomTOC(html) {
+    const div = document.createElement('div'); div.innerHTML = html;
+    const headings = div.querySelectorAll('h1, h2');
+    if (headings.length === 0) return '';
+    let toc = '';
+    headings.forEach(h => {
+        const level = parseInt(h.tagName.charAt(1)), text = h.textContent.trim();
+        const id = text.toLowerCase().replace(/[^a-z0-9\u0900-\u097F]+/g, '-').replace(/^-|-$/g, '');
+        toc += `<li class="toc-item level-${level}"><a class="toc-link" href="#${id}">${text}</a></li>`;
+    });
+    return toc;
+}
+
+function addHeadingIds() {
+    const body = document.getElementById('markdownBody'); if (!body) return;
+    body.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach(h => {
+        if (!h.id) h.id = h.textContent.toLowerCase().replace(/[^a-z0-9\u0900-\u097F]+/g, '-').replace(/^-|-$/g, '');
+        if (parseInt(h.tagName.charAt(1)) <= 2 && !h.querySelector('.heading-toc-link')) {
+            const link = document.createElement('a'); link.className = 'heading-toc-link'; link.href = '#toc-container';
+            link.textContent = '↑ TOC'; link.title = 'Back to TOC';
+            link.addEventListener('click', e => { e.preventDefault(); const t = document.querySelector('.toc-container'); if (t) t.scrollIntoView({ behavior: 'smooth' }); else window.scrollTo({ top: 0, behavior: 'smooth' }); });
+            h.appendChild(link);
+        }
+    });
+}
+
+// ========================================
+// Table Filtering
+// ========================================
+function setupTableFilters() {
+    const body = document.getElementById('markdownBody'); if (!body) return;
+    body.querySelectorAll('table').forEach((table, idx) => {
+        const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent.trim());
+        if (headers.length === 0) return;
+        const wrapper = document.createElement('div'); wrapper.className = 'table-filter-wrapper'; wrapper.id = `filter-${idx}`;
+        wrapper.innerHTML = `<div class="table-filter-header"><span class="table-filter-title">🔍 Filter Table</span><button class="table-filter-toggle" data-idx="${idx}">Show/Hide</button></div><div class="table-filter-rules" id="rules-${idx}" style="display:none;"></div><div class="filter-actions" id="actions-${idx}" style="display:none;"><button class="filter-btn filter-add-btn" data-idx="${idx}">+ Add Rule</button><button class="filter-btn filter-apply-btn" data-idx="${idx}">Apply</button><button class="filter-btn filter-clear-btn" data-idx="${idx}">Clear</button></div><div class="filter-results" id="results-${idx}"></div>`;
+        table.parentNode.insertBefore(wrapper, table);
+        wrapper.querySelector('.table-filter-toggle').addEventListener('click', () => {
+            const rules = document.getElementById(`rules-${idx}`), actions = document.getElementById(`actions-${idx}`);
+            const show = rules.style.display === 'none';
+            rules.style.display = show ? 'flex' : 'none';
+            actions.style.display = show ? 'flex' : 'none';
+            if (show && document.getElementById(`rules-${idx}`).children.length === 0) addFilterRule(idx, headers);
+        });
+        wrapper.querySelector('.filter-add-btn').addEventListener('click', () => addFilterRule(idx, headers));
+        wrapper.querySelector('.filter-apply-btn').addEventListener('click', () => applyTableFilter(idx, table, headers));
+        wrapper.querySelector('.filter-clear-btn').addEventListener('click', () => clearTableFilter(idx, table));
+    });
+}
+
+function addFilterRule(idx, headers) {
+    const container = document.getElementById(`rules-${idx}`), ruleIdx = container.children.length;
+    const rule = document.createElement('div'); rule.className = 'filter-rule'; rule.dataset.ruleIdx = ruleIdx;
+    rule.innerHTML = `${ruleIdx > 0 ? '<select class="filter-logic-select"><option value="AND">AND</option><option value="OR">OR</option></select>' : ''}<select class="filter-column">${headers.map((h, i) => `<option value="${i}">${h}</option>`).join('')}</select><select class="filter-operator"><option value="contains">CONTAINS</option><option value="equals">EQUALS</option><option value="like">LIKE (%)</option><option value="not_contains">NOT CONTAINS</option><option value="not_equals">NOT EQUALS</option><option value="gt">></option><option value="lt"><</option><option value="gte">>=</option><option value="lte"><=</option></select><input type="text" class="filter-value" placeholder="Value..."><button class="filter-rule-remove">✕</button>`;
+    rule.querySelector('.filter-rule-remove').addEventListener('click', () => { rule.remove(); });
+    container.appendChild(rule);
+}
+
+function applyTableFilter(idx, table, headers) {
+    const rules = Array.from(document.getElementById(`rules-${idx}`).querySelectorAll('.filter-rule'));
+    const rows = table.querySelectorAll('tbody tr, tr:not(:first-child)');
+    let matchCount = 0, totalCount = rows.length;
+    rows.forEach(row => {
+        const cells = Array.from(row.querySelectorAll('td'));
+        if (cells.length === 0) return;
+        let match = null;
+        rules.forEach((rule, i) => {
+            const col = parseInt(rule.querySelector('.filter-column').value);
+            const op = rule.querySelector('.filter-operator').value;
+            const val = rule.querySelector('.filter-value').value;
+            const cellVal = cells[col]?.textContent.trim() || '';
+            const ruleMatch = evaluateCondition(cellVal, op, val);
+            if (i === 0) { match = ruleMatch; }
+            else {
+                const logic = rule.querySelector('.filter-logic-select')?.value || 'AND';
+                match = logic === 'AND' ? (match && ruleMatch) : (match || ruleMatch);
+            }
+        });
+        if (match) { row.classList.remove('filtered-out'); row.classList.add('filter-match'); matchCount++; }
+        else { row.classList.add('filtered-out'); row.classList.remove('filter-match'); }
+    });
+    document.getElementById(`results-${idx}`).textContent = `Showing ${matchCount} of ${totalCount} rows`;
+}
+
+function evaluateCondition(cellVal, op, filterVal) {
+    const cv = cellVal.toLowerCase(), fv = filterVal.toLowerCase();
+    switch (op) {
+        case 'contains': return cv.includes(fv);
+        case 'equals': return cv === fv;
+        case 'like': return new RegExp('^' + fv.replace(/%/g, '.*') + '$', 'i').test(cellVal);
+        case 'not_contains': return !cv.includes(fv);
+        case 'not_equals': return cv !== fv;
+        case 'gt': return parseFloat(cellVal) > parseFloat(filterVal);
+        case 'lt': return parseFloat(cellVal) < parseFloat(filterVal);
+        case 'gte': return parseFloat(cellVal) >= parseFloat(filterVal);
+        case 'lte': return parseFloat(cellVal) <= parseFloat(filterVal);
+        default: return true;
+    }
+}
+
+function clearTableFilter(idx, table) {
+    table.querySelectorAll('tr').forEach(r => { r.classList.remove('filtered-out', 'filter-match'); });
+    document.getElementById(`results-${idx}`).textContent = '';
+}
+
+// ========================================
+// Password (Notes)
+// ========================================
+function showPasswordPrompt(noteId) {
+    const note = AppState.notes.get(noteId), overlay = document.getElementById('passwordOverlay');
+    document.getElementById('passwordNoteTitle').textContent = `Unlock "${note.meta.name}"`;
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordError').classList.remove('visible');
+    overlay.dataset.noteId = noteId;
+    overlay.classList.add('visible');
+    setTimeout(() => document.getElementById('passwordInput').focus(), 100);
+}
+function hidePasswordPrompt() { document.getElementById('passwordOverlay').classList.remove('visible'); }
+function validatePassword() {
+    const overlay = document.getElementById('passwordOverlay'), noteId = overlay.dataset.noteId;
+    const input = document.getElementById('passwordInput'), error = document.getElementById('passwordError');
+    const note = AppState.notes.get(noteId);
+    if (input.value === note.meta.password) { AppState.unlockedNotes.add(noteId); hidePasswordPrompt(); buildNavigation(); loadNote(noteId); }
+    else { error.classList.add('visible'); input.value = ''; input.focus(); }
+}
+
+// ========================================
+// Search
+// ========================================
+function performSearch(query) {
+    const body = document.getElementById('markdownBody');
+    if (!body || !query.trim()) { clearSearch(); return; }
+    body.innerHTML = AppState.originalContent;
+    addHeadingIds();
+    processSmartLinks();
+    processMediaGalleries();
+    AppState.searchMatches = [];
+    AppState.currentMatchIndex = -1;
+    const isNepali = NepaliNormalizer.isDevanagari(query);
+    if (isNepali) highlightDevanagari(body, query);
+    else highlightMatches(body, query.toLowerCase());
+    updateSearchUI();
+    if (AppState.searchMatches.length > 0) navigateToMatch(0);
+}
+
+function highlightDevanagari(el, query) {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+    const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+    const normQuery = NepaliNormalizer.normalize(query.toLowerCase());
+    for (const node of nodes) {
+        const text = node.textContent, normText = NepaliNormalizer.normalize(text.toLowerCase());
+        const matches = [];
+        let start = 0;
+        while (start < normText.length) {
+            const found = normText.indexOf(normQuery, start);
+            if (found === -1) break;
+            const origStart = NepaliNormalizer.mapToOriginal(found, text, normText);
+            const origEnd = NepaliNormalizer.mapToOriginal(found + normQuery.length, text, normText);
+            if (origStart !== -1 && origEnd !== -1 && origStart < origEnd) matches.push({ start: origStart, end: origEnd });
+            start = found + 1;
+        }
+        if (matches.length > 0) {
+            const frag = document.createDocumentFragment();
+            let last = 0;
+            for (const m of matches) {
+                if (m.start > last) frag.appendChild(document.createTextNode(text.substring(last, m.start)));
+                const mark = document.createElement('mark'); mark.className = 'search-highlight';
+                mark.textContent = text.substring(m.start, m.end);
+                mark.dataset.matchIndex = AppState.searchMatches.length;
+                AppState.searchMatches.push(mark);
+                frag.appendChild(mark);
+                last = m.end;
+            }
+            if (last < text.length) frag.appendChild(document.createTextNode(text.substring(last)));
+            node.parentNode.replaceChild(frag, node);
+        }
+    }
+}
+
+function highlightMatches(el, query) {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+    const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+    for (const node of nodes) {
+        const text = node.textContent;
+        if (text.toLowerCase().includes(query)) {
+            const frag = document.createDocumentFragment();
+            const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+            let last = 0, match;
+            while ((match = regex.exec(text)) !== null) {
+                if (match.index > last) frag.appendChild(document.createTextNode(text.substring(last, match.index)));
+                const mark = document.createElement('mark'); mark.className = 'search-highlight';
+                mark.textContent = match[0]; mark.dataset.matchIndex = AppState.searchMatches.length;
+                AppState.searchMatches.push(mark); frag.appendChild(mark);
+                last = regex.lastIndex;
+            }
+            if (last < text.length) frag.appendChild(document.createTextNode(text.substring(last)));
+            node.parentNode.replaceChild(frag, node);
+        }
+    }
+}
+
+function navigateToMatch(idx) {
+    if (AppState.searchMatches.length === 0) return;
+    if (AppState.currentMatchIndex >= 0) AppState.searchMatches[AppState.currentMatchIndex]?.classList.remove('active');
+    AppState.currentMatchIndex = idx;
+    const match = AppState.searchMatches[idx];
+    if (match) { match.classList.add('active'); match.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    updateSearchUI();
+}
+function navigatePrevMatch() { if (AppState.searchMatches.length === 0) return; let idx = AppState.currentMatchIndex - 1; if (idx < 0) idx = AppState.searchMatches.length - 1; navigateToMatch(idx); }
+function navigateNextMatch() { if (AppState.searchMatches.length === 0) return; let idx = AppState.currentMatchIndex + 1; if (idx >= AppState.searchMatches.length) idx = 0; navigateToMatch(idx); }
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    AppState.searchMatches = []; AppState.currentMatchIndex = -1;
+    const body = document.getElementById('markdownBody');
+    if (body && AppState.originalContent) { body.innerHTML = AppState.originalContent; addHeadingIds(); processSmartLinks(); processMediaGalleries(); setupTableFilters(); setupTocClickHandlers(); }
+    updateSearchUI();
+}
+function updateSearchUI() {
+    const nav = document.getElementById('searchNav'), counter = document.getElementById('searchCounter');
+    const prev = document.getElementById('searchPrev'), next = document.getElementById('searchNext');
+    const clear = document.getElementById('clearSearch'), input = document.getElementById('searchInput');
+    const hasMatches = AppState.searchMatches.length > 0, hasQuery = input.value.trim().length > 0;
+    nav.classList.toggle('visible', hasQuery);
+    clear.classList.toggle('visible', hasQuery);
+    if (hasMatches) { counter.textContent = `${AppState.currentMatchIndex + 1} / ${AppState.searchMatches.length}`; prev.disabled = false; next.disabled = false; }
+    else { counter.textContent = hasQuery ? '0 / 0' : ''; prev.disabled = true; next.disabled = true; }
+}
+
+// ========================================
+// UI Helpers
+// ========================================
+function updateActiveNavItem(noteId) {
+    document.querySelectorAll('.nav-item,.special-nav-item').forEach(el => el.classList.remove('active'));
+    const item = document.querySelector(`.nav-item[data-note-id="${noteId}"]`);
+    if (item) { item.classList.add('active'); let p = item.closest('.nav-dropdown'); while (p) { p.classList.add('open'); p = p.parentElement.closest('.nav-dropdown'); } }
+}
+function updateBreadcrumb(note) {
+    const bc = document.getElementById('breadcrumb');
+    let path = ['Notes'];
+    if (note.group) path.push(`Group ${note.group}`);
+    if (note.unit) path.push(`Unit ${note.unit}`);
+    path.push(note.meta.name);
+    bc.innerHTML = path.map((item, i) => `<span class="breadcrumb-item ${i === path.length - 1 ? 'active' : ''}">${item}</span>${i < path.length - 1 ? '<span class="breadcrumb-separator">/</span>' : ''}`).join('');
+}
+function setupBackToTop() {
+    const btn = document.getElementById('backToTop');
+    window.addEventListener('scroll', () => { btn.classList.toggle('visible', window.scrollY > 300); });
+    btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+}
+
+// ========================================
+// Event Listeners
+// ========================================
+function setupEventListeners() {
+    document.getElementById('masterTocHeader').addEventListener('click', () => document.getElementById('masterTocContainer').classList.toggle('open'));
+    document.getElementById('readmeItem').addEventListener('click', loadReadme);
+    document.getElementById('publicAllItem').addEventListener('click', loadPublicAllNotes);
+    
+    // Note password modal
+    document.getElementById('passwordCancel').addEventListener('click', hidePasswordPrompt);
+    document.getElementById('passwordSubmit').addEventListener('click', validatePassword);
+    document.getElementById('passwordInput').addEventListener('keypress', e => { if (e.key === 'Enter') validatePassword(); });
+    document.getElementById('passwordOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) hidePasswordPrompt(); });
+    
+    // Media password modal
+    document.getElementById('mediaPasswordCancel').addEventListener('click', hideMediaPasswordPrompt);
+    document.getElementById('mediaPasswordSubmit').addEventListener('click', validateMediaPassword);
+    document.getElementById('mediaPasswordInput').addEventListener('keypress', e => { if (e.key === 'Enter') validateMediaPassword(); });
+    document.getElementById('mediaPasswordOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) hideMediaPasswordPrompt(); });
+    
+    // Lightbox
+    document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+    document.getElementById('lightboxPrev').addEventListener('click', () => navigateLightbox(-1));
+    document.getElementById('lightboxNext').addEventListener('click', () => navigateLightbox(1));
+    document.getElementById('lightboxOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeLightbox(); });
+    
+    // Search
+    let searchTimeout;
+    document.getElementById('searchInput').addEventListener('input', e => { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => performSearch(e.target.value), 300); });
+    document.getElementById('searchPrev').addEventListener('click', navigatePrevMatch);
+    document.getElementById('searchNext').addEventListener('click', navigateNextMatch);
+    document.getElementById('clearSearch').addEventListener('click', clearSearch);
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); document.getElementById('searchInput').focus(); }
+        if (e.key === 'F3' || (e.key === 'Enter' && document.activeElement.id === 'searchInput')) { e.preventDefault(); e.shiftKey ? navigatePrevMatch() : navigateNextMatch(); }
+        if (e.key === 'Escape') {
+            if (document.getElementById('lightboxOverlay').classList.contains('visible')) { closeLightbox(); }
+            else if (document.getElementById('mediaPasswordOverlay').classList.contains('visible')) { hideMediaPasswordPrompt(); }
+            else if (document.getElementById('passwordOverlay').classList.contains('visible')) { hidePasswordPrompt(); }
+            else { clearSearch(); document.getElementById('searchInput').blur(); }
+        }
+        // Lightbox navigation
+        if (document.getElementById('lightboxOverlay').classList.contains('visible')) {
+            if (e.key === 'ArrowLeft') navigateLightbox(-1);
+            if (e.key === 'ArrowRight') navigateLightbox(1);
+        }
+    });
+    
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
+}
+
+// ========================================
+// Init
+// ========================================
+async function init() {
+    discoverNotes();
+    await initPyodide();
+    buildNavigation();
+    setupEventListeners();
+    setupBackToTop();
+    console.log('📚 Notes Viewer initialized:', AppState.notes.size, 'notes in', AppState.groups.size, 'groups');
+}
+document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html> 0) return;
+        let match = null;
+        rules.forEach((rule, i) => {
+            const col = parseInt(rule.querySelector('.filter-column').value);
+            const op = rule.querySelector('.filter-operator').value;
+            const val = rule.querySelector('.filter-value').value;
+            const cellVal = cells[col]?.textContent.trim() || '';
+            const ruleMatch = evaluateCondition(cellVal, op, val);
+            if (i === 0) { match = ruleMatch; }
+            else {
+                const logic = rule.querySelector('.filter-logic-select')?.value || 'AND';
+                match = logic === 'AND' ? (match && ruleMatch) : (match || ruleMatch);
+            }
+        });
+        if (match) { row.classList.remove('filtered-out'); row.classList.add('filter-match'); matchCount++; }
+        else { row.classList.add('filtered-out'); row.classList.remove('filter-match'); }
+    });
+    document.getElementById(`results-${idx}`).textContent = `Showing ${matchCount} of ${totalCount} rows`;
+}
+
+function evaluateCondition(cellVal, op, filterVal) {
+    const cv = cellVal.toLowerCase(), fv = filterVal.toLowerCase();
+    switch (op) {
+        case 'contains': return cv.includes(fv);
+        case 'equals': return cv === fv;
+        case 'like': return new RegExp('^' + fv.replace(/%/g, '.*') + '$', 'i').test(cellVal);
+        case 'not_contains': return !cv.includes(fv);
+        case 'not_equals': return cv !== fv;
+        case 'gt': return parseFloat(cellVal) > parseFloat(filterVal);
+        case 'lt': return parseFloat(cellVal) < parseFloat(filterVal);
+        case 'gte': return parseFloat(cellVal) >= parseFloat(filterVal);
+        case 'lte': return parseFloat(cellVal) <= parseFloat(filterVal);
+        default: return true;
+    }
+}
+
+function clearTableFilter(idx, table) {
+    table.querySelectorAll('tr').forEach(r => { r.classList.remove('filtered-out', 'filter-match'); });
+    document.getElementById(`results-${idx}`).textContent = '';
+}
+
+// ========================================
+// Password (Notes)
+// ========================================
+function showPasswordPrompt(noteId) {
+    const note = AppState.notes.get(noteId), overlay = document.getElementById('passwordOverlay');
+    document.getElementById('passwordNoteTitle').textContent = `Unlock "${note.meta.name}"`;
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordError').classList.remove('visible');
+    overlay.dataset.noteId = noteId;
+    overlay.classList.add('visible');
+    setTimeout(() => document.getElementById('passwordInput').focus(), 100);
+}
+function hidePasswordPrompt() { document.getElementById('passwordOverlay').classList.remove('visible'); }
+function validatePassword() {
+    const overlay = document.getElementById('passwordOverlay'), noteId = overlay.dataset.noteId;
+    const input = document.getElementById('passwordInput'), error = document.getElementById('passwordError');
+    const note = AppState.notes.get(noteId);
+    if (input.value === note.meta.password) { AppState.unlockedNotes.add(noteId); hidePasswordPrompt(); buildNavigation(); loadNote(noteId); }
+    else { error.classList.add('visible'); input.value = ''; input.focus(); }
+}
+
+// ========================================
+// Search
+// ========================================
+function performSearch(query) {
+    const body = document.getElementById('markdownBody');
+    if (!body || !query.trim()) { clearSearch(); return; }
+    body.innerHTML = AppState.originalContent;
+    addHeadingIds();
+    processSmartLinks();
+    processMediaGalleries();
+    AppState.searchMatches = [];
+    AppState.currentMatchIndex = -1;
+    const isNepali = NepaliNormalizer.isDevanagari(query);
+    if (isNepali) highlightDevanagari(body, query);
+    else highlightMatches(body, query.toLowerCase());
+    updateSearchUI();
+    if (AppState.searchMatches.length > 0) navigateToMatch(0);
+}
+
+function highlightDevanagari(el, query) {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+    const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+    const normQuery = NepaliNormalizer.normalize(query.toLowerCase());
+    for (const node of nodes) {
+        const text = node.textContent, normText = NepaliNormalizer.normalize(text.toLowerCase());
+        const matches = [];
+        let start = 0;
+        while (start < normText.length) {
+            const found = normText.indexOf(normQuery, start);
+            if (found === -1) break;
+            const origStart = NepaliNormalizer.mapToOriginal(found, text, normText);
+            const origEnd = NepaliNormalizer.mapToOriginal(found + normQuery.length, text, normText);
+            if (origStart !== -1 && origEnd !== -1 && origStart < origEnd) matches.push({ start: origStart, end: origEnd });
+            start = found + 1;
+        }
+        if (matches.length > 0) {
+            const frag = document.createDocumentFragment();
+            let last = 0;
+            for (const m of matches) {
+                if (m.start > last) frag.appendChild(document.createTextNode(text.substring(last, m.start)));
+                const mark = document.createElement('mark'); mark.className = 'search-highlight';
+                mark.textContent = text.substring(m.start, m.end);
+                mark.dataset.matchIndex = AppState.searchMatches.length;
+                AppState.searchMatches.push(mark);
+                frag.appendChild(mark);
+                last = m.end;
+            }
+            if (last < text.length) frag.appendChild(document.createTextNode(text.substring(last)));
+            node.parentNode.replaceChild(frag, node);
+        }
+    }
+}
+
+function highlightMatches(el, query) {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+    const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+    for (const node of nodes) {
+        const text = node.textContent;
+        if (text.toLowerCase().includes(query)) {
+            const frag = document.createDocumentFragment();
+            const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+            let last = 0, match;
+            while ((match = regex.exec(text)) !== null) {
+                if (match.index > last) frag.appendChild(document.createTextNode(text.substring(last, match.index)));
+                const mark = document.createElement('mark'); mark.className = 'search-highlight';
+                mark.textContent = match[0]; mark.dataset.matchIndex = AppState.searchMatches.length;
+                AppState.searchMatches.push(mark); frag.appendChild(mark);
+                last = regex.lastIndex;
+            }
+            if (last < text.length) frag.appendChild(document.createTextNode(text.substring(last)));
+            node.parentNode.replaceChild(frag, node);
+        }
+    }
+}
+
+function navigateToMatch(idx) {
+    if (AppState.searchMatches.length === 0) return;
+    if (AppState.currentMatchIndex >= 0) AppState.searchMatches[AppState.currentMatchIndex]?.classList.remove('active');
+    AppState.currentMatchIndex = idx;
+    const match = AppState.searchMatches[idx];
+    if (match) { match.classList.add('active'); match.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    updateSearchUI();
+}
+function navigatePrevMatch() { if (AppState.searchMatches.length === 0) return; let idx = AppState.currentMatchIndex - 1; if (idx < 0) idx = AppState.searchMatches.length - 1; navigateToMatch(idx); }
+function navigateNextMatch() { if (AppState.searchMatches.length === 0) return; let idx = AppState.currentMatchIndex + 1; if (idx >= AppState.searchMatches.length) idx = 0; navigateToMatch(idx); }
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    AppState.searchMatches = []; AppState.currentMatchIndex = -1;
+    const body = document.getElementById('markdownBody');
+    if (body && AppState.originalContent) { body.innerHTML = AppState.originalContent; addHeadingIds(); processSmartLinks(); processMediaGalleries(); setupTableFilters(); setupTocClickHandlers(); }
+    updateSearchUI();
+}
+function updateSearchUI() {
+    const nav = document.getElementById('searchNav'), counter = document.getElementById('searchCounter');
+    const prev = document.getElementById('searchPrev'), next = document.getElementById('searchNext');
+    const clear = document.getElementById('clearSearch'), input = document.getElementById('searchInput');
+    const hasMatches = AppState.searchMatches.length > 0, hasQuery = input.value.trim().length > 0;
+    nav.classList.toggle('visible', hasQuery);
+    clear.classList.toggle('visible', hasQuery);
+    if (hasMatches) { counter.textContent = `${AppState.currentMatchIndex + 1} / ${AppState.searchMatches.length}`; prev.disabled = false; next.disabled = false; }
+    else { counter.textContent = hasQuery ? '0 / 0' : ''; prev.disabled = true; next.disabled = true; }
+}
+
+// ========================================
+// UI Helpers
+// ========================================
+function updateActiveNavItem(noteId) {
+    document.querySelectorAll('.nav-item,.special-nav-item').forEach(el => el.classList.remove('active'));
+    const item = document.querySelector(`.nav-item[data-note-id="${noteId}"]`);
+    if (item) { item.classList.add('active'); let p = item.closest('.nav-dropdown'); while (p) { p.classList.add('open'); p = p.parentElement.closest('.nav-dropdown'); } }
+}
+function updateBreadcrumb(note) {
+    const bc = document.getElementById('breadcrumb');
+    let path = ['Notes'];
+    if (note.group) path.push(`Group ${note.group}`);
+    if (note.unit) path.push(`Unit ${note.unit}`);
+    path.push(note.meta.name);
+    bc.innerHTML = path.map((item, i) => `<span class="breadcrumb-item ${i === path.length - 1 ? 'active' : ''}">${item}</span>${i < path.length - 1 ? '<span class="breadcrumb-separator">/</span>' : ''}`).join('');
+}
+function setupBackToTop() {
+    const btn = document.getElementById('backToTop');
+    window.addEventListener('scroll', () => { btn.classList.toggle('visible', window.scrollY > 300); });
+    btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+}
+
+// ========================================
+// Event Listeners
+// ========================================
+function setupEventListeners() {
+    document.getElementById('masterTocHeader').addEventListener('click', () => document.getElementById('masterTocContainer').classList.toggle('open'));
+    document.getElementById('readmeItem').addEventListener('click', loadReadme);
+    document.getElementById('publicAllItem').addEventListener('click', loadPublicAllNotes);
+    
+    // Note password
+    document.getElementById('passwordCancel').addEventListener('click', hidePasswordPrompt);
+    document.getElementById('passwordSubmit').addEventListener('click', validatePassword);
+    document.getElementById('passwordInput').addEventListener('keypress', e => { if (e.key === 'Enter') validatePassword(); });
+    document.getElementById('passwordOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) hidePasswordPrompt(); });
+    
+    // Media password
+    document.getElementById('mediaPasswordCancel').addEventListener('click', hideMediaPasswordPrompt);
+    document.getElementById('mediaPasswordSubmit').addEventListener('click', validateMediaPassword);
+    document.getElementById('mediaPasswordInput').addEventListener('keypress', e => { if (e.key === 'Enter') validateMediaPassword(); });
+    document.getElementById('mediaPasswordOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) hideMediaPasswordPrompt(); });
+    
+    // Lightbox
+    document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+    document.getElementById('lightboxPrev').addEventListener('click', () => navigateLightbox(-1));
+    document.getElementById('lightboxNext').addEventListener('click', () => navigateLightbox(1));
+    document.getElementById('lightboxOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeLightbox(); });
+    
+    // Search
+    let searchTimeout;
+    document.getElementById('searchInput').addEventListener('input', e => { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => performSearch(e.target.value), 300); });
+    document.getElementById('searchPrev').addEventListener('click', navigatePrevMatch);
+    document.getElementById('searchNext').addEventListener('click', navigateNextMatch);
+    document.getElementById('clearSearch').addEventListener('click', clearSearch);
+    
+    // Keyboard
+    document.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); document.getElementById('searchInput').focus(); }
+        if (e.key === 'F3' || (e.key === 'Enter' && document.activeElement.id === 'searchInput')) { e.preventDefault(); e.shiftKey ? navigatePrevMatch() : navigateNextMatch(); }
+        if (e.key === 'Escape') {
+            if (document.getElementById('lightboxOverlay').classList.contains('visible')) closeLightbox();
+            else if (document.getElementById('mediaPasswordOverlay').classList.contains('visible')) hideMediaPasswordPrompt();
+            else if (document.getElementById('passwordOverlay').classList.contains('visible')) hidePasswordPrompt();
+            else { clearSearch(); document.getElementById('searchInput').blur(); }
+        }
+        if (document.getElementById('lightboxOverlay').classList.contains('visible')) {
+            if (e.key === 'ArrowLeft') navigateLightbox(-1);
+            if (e.key === 'ArrowRight') navigateLightbox(1);
+        }
+    });
+    
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
+}
+
+// ========================================
+// Init
+// ========================================
+async function init() {
+    discoverNotes();
+    await initPyodide();
+    buildNavigation();
+    setupEventListeners();
+    setupBackToTop();
+    console.log('📚 Notes Viewer initialized:', AppState.notes.size, 'notes in', AppState.groups.size, 'groups');
+}
+document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html> 0) return;
+        let match = null;
+        rules.forEach((rule, i) => {
+            const col = parseInt(rule.querySelector('.filter-column').value);
+            const op = rule.querySelector('.filter-operator').value;
+            const val = rule.querySelector('.filter-value').value;
+            const cellVal = cells[col]?.textContent.trim() || '';
+            const ruleMatch = evaluateCondition(cellVal, op, val);
+            if (i === 0) { match = ruleMatch; }
+            else {
+                const logic = rule.querySelector('.filter-logic-select')?.value || 'AND';
+                match = logic === 'AND' ? (match && ruleMatch) : (match || ruleMatch);
+            }
+        });
+        if (match) { row.classList.remove('filtered-out'); row.classList.add('filter-match'); matchCount++; }
+        else { row.classList.add('filtered-out'); row.classList.remove('filter-match'); }
+    });
+    document.getElementById(`results-${idx}`).textContent = `Showing ${matchCount} of ${totalCount} rows`;
+}
+
+function evaluateCondition(cellVal, op, filterVal) {
+    const cv = cellVal.toLowerCase(), fv = filterVal.toLowerCase();
+    switch (op) {
+        case 'contains': return cv.includes(fv);
+        case 'equals': return cv === fv;
+        case 'like': return new RegExp('^' + fv.replace(/%/g, '.*') + '$', 'i').test(cellVal);
+        case 'not_contains': return !cv.includes(fv);
+        case 'not_equals': return cv !== fv;
+        case 'gt': return parseFloat(cellVal) > parseFloat(filterVal);
+        case 'lt': return parseFloat(cellVal) < parseFloat(filterVal);
+        case 'gte': return parseFloat(cellVal) >= parseFloat(filterVal);
+        case 'lte': return parseFloat(cellVal) <= parseFloat(filterVal);
+        default: return true;
+    }
+}
+
+function clearTableFilter(idx, table) {
+    table.querySelectorAll('tr').forEach(r => { r.classList.remove('filtered-out', 'filter-match'); });
+    document.getElementById(`results-${idx}`).textContent = '';
+}
+
+// ========================================
+// Password
+// ========================================
+function showPasswordPrompt(noteId) {
+    const note = AppState.notes.get(noteId), overlay = document.getElementById('passwordOverlay');
+    document.getElementById('passwordNoteTitle').textContent = `Unlock "${note.meta.name}"`;
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordError').classList.remove('visible');
+    overlay.dataset.noteId = noteId;
+    overlay.classList.add('visible');
+    setTimeout(() => document.getElementById('passwordInput').focus(), 100);
+}
+function hidePasswordPrompt() { document.getElementById('passwordOverlay').classList.remove('visible'); }
+function validatePassword() {
+    const overlay = document.getElementById('passwordOverlay'), noteId = overlay.dataset.noteId;
+    const input = document.getElementById('passwordInput'), error = document.getElementById('passwordError');
+    const note = AppState.notes.get(noteId);
+    if (input.value === note.meta.password) { AppState.unlockedNotes.add(noteId); hidePasswordPrompt(); buildNavigation(); loadNote(noteId); }
+    else { error.classList.add('visible'); input.value = ''; input.focus(); }
+}
+
+// ========================================
+// Search
+// ========================================
+function performSearch(query) {
+    const body = document.getElementById('markdownBody');
+    if (!body || !query.trim()) { clearSearch(); return; }
+    body.innerHTML = AppState.originalContent;
+    addHeadingIds();
+    AppState.searchMatches = [];
+    AppState.currentMatchIndex = -1;
+    const isNepali = NepaliNormalizer.isDevanagari(query);
+    if (isNepali) highlightDevanagari(body, query);
+    else highlightMatches(body, query.toLowerCase());
+    updateSearchUI();
+    if (AppState.searchMatches.length > 0) navigateToMatch(0);
+}
+
+function highlightDevanagari(el, query) {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+    const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+    const normQuery = NepaliNormalizer.normalize(query.toLowerCase());
+    for (const node of nodes) {
+        const text = node.textContent, normText = NepaliNormalizer.normalize(text.toLowerCase());
+        const matches = [];
+        let start = 0;
+        while (start < normText.length) {
+            const found = normText.indexOf(normQuery, start);
+            if (found === -1) break;
+            const origStart = NepaliNormalizer.mapToOriginal(found, text, normText);
+            const origEnd = NepaliNormalizer.mapToOriginal(found + normQuery.length, text, normText);
+            if (origStart !== -1 && origEnd !== -1 && origStart < origEnd) matches.push({ start: origStart, end: origEnd });
+            start = found + 1;
+        }
+        if (matches.length > 0) {
+            const frag = document.createDocumentFragment();
+            let last = 0;
+            for (const m of matches) {
+                if (m.start > last) frag.appendChild(document.createTextNode(text.substring(last, m.start)));
+                const mark = document.createElement('mark'); mark.className = 'search-highlight';
+                mark.textContent = text.substring(m.start, m.end);
+                mark.dataset.matchIndex = AppState.searchMatches.length;
+                AppState.searchMatches.push(mark);
+                frag.appendChild(mark);
+                last = m.end;
+            }
+            if (last < text.length) frag.appendChild(document.createTextNode(text.substring(last)));
+            node.parentNode.replaceChild(frag, node);
+        }
+    }
+}
+
+function highlightMatches(el, query) {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+    const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+    for (const node of nodes) {
+        const text = node.textContent;
+        if (text.toLowerCase().includes(query)) {
+            const frag = document.createDocumentFragment();
+            const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+            let last = 0, match;
+            while ((match = regex.exec(text)) !== null) {
+                if (match.index > last) frag.appendChild(document.createTextNode(text.substring(last, match.index)));
+                const mark = document.createElement('mark'); mark.className = 'search-highlight';
+                mark.textContent = match[0]; mark.dataset.matchIndex = AppState.searchMatches.length;
+                AppState.searchMatches.push(mark); frag.appendChild(mark);
+                last = regex.lastIndex;
+            }
+            if (last < text.length) frag.appendChild(document.createTextNode(text.substring(last)));
+            node.parentNode.replaceChild(frag, node);
+        }
+    }
+}
+
+function navigateToMatch(idx) {
+    if (AppState.searchMatches.length === 0) return;
+    if (AppState.currentMatchIndex >= 0) AppState.searchMatches[AppState.currentMatchIndex]?.classList.remove('active');
+    AppState.currentMatchIndex = idx;
+    const match = AppState.searchMatches[idx];
+    if (match) { match.classList.add('active'); match.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    updateSearchUI();
+}
+function navigatePrevMatch() { if (AppState.searchMatches.length === 0) return; let idx = AppState.currentMatchIndex - 1; if (idx < 0) idx = AppState.searchMatches.length - 1; navigateToMatch(idx); }
+function navigateNextMatch() { if (AppState.searchMatches.length === 0) return; let idx = AppState.currentMatchIndex + 1; if (idx >= AppState.searchMatches.length) idx = 0; navigateToMatch(idx); }
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    AppState.searchMatches = []; AppState.currentMatchIndex = -1;
+    const body = document.getElementById('markdownBody');
+    if (body && AppState.originalContent) { body.innerHTML = AppState.originalContent; addHeadingIds(); setupTableFilters(); }
+    updateSearchUI();
+}
+function updateSearchUI() {
+    const nav = document.getElementById('searchNav'), counter = document.getElementById('searchCounter');
+    const prev = document.getElementById('searchPrev'), next = document.getElementById('searchNext');
+    const clear = document.getElementById('clearSearch'), input = document.getElementById('searchInput');
+    const hasMatches = AppState.searchMatches.length > 0, hasQuery = input.value.trim().length > 0;
+    nav.classList.toggle('visible', hasQuery);
+    clear.classList.toggle('visible', hasQuery);
+    if (hasMatches) { counter.textContent = `${AppState.currentMatchIndex + 1} / ${AppState.searchMatches.length}`; prev.disabled = false; next.disabled = false; }
+    else { counter.textContent = hasQuery ? '0 / 0' : ''; prev.disabled = true; next.disabled = true; }
+}
+
+// ========================================
+// UI Helpers
+// ========================================
+function updateActiveNavItem(noteId) {
+    document.querySelectorAll('.nav-item,.special-nav-item').forEach(el => el.classList.remove('active'));
+    const item = document.querySelector(`.nav-item[data-note-id="${noteId}"]`);
+    if (item) { item.classList.add('active'); let p = item.closest('.nav-dropdown'); while (p) { p.classList.add('open'); p = p.parentElement.closest('.nav-dropdown'); } }
+}
+function updateBreadcrumb(note) {
+    const bc = document.getElementById('breadcrumb');
+    let path = ['Notes'];
+    if (note.group) path.push(`Group ${note.group}`);
+    if (note.unit) path.push(`Unit ${note.unit}`);
+    path.push(note.meta.name);
+    bc.innerHTML = path.map((item, i) => `<span class="breadcrumb-item ${i === path.length - 1 ? 'active' : ''}">${item}</span>${i < path.length - 1 ? '<span class="breadcrumb-separator">/</span>' : ''}`).join('');
+}
+function setupBackToTop() {
+    const btn = document.getElementById('backToTop');
+    window.addEventListener('scroll', () => { btn.classList.toggle('visible', window.scrollY > 300); });
+    btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+}
+
+// ========================================
+// Event Listeners
+// ========================================
+function setupEventListeners() {
+    document.getElementById('masterTocHeader').addEventListener('click', () => document.getElementById('masterTocContainer').classList.toggle('open'));
+    document.getElementById('readmeItem').addEventListener('click', loadReadme);
+    document.getElementById('publicAllItem').addEventListener('click', loadPublicAllNotes);
+    document.getElementById('passwordCancel').addEventListener('click', hidePasswordPrompt);
+    document.getElementById('passwordSubmit').addEventListener('click', validatePassword);
+    document.getElementById('passwordInput').addEventListener('keypress', e => { if (e.key === 'Enter') validatePassword(); });
+    document.getElementById('passwordOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) hidePasswordPrompt(); });
+    let searchTimeout;
+    document.getElementById('searchInput').addEventListener('input', e => { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => performSearch(e.target.value), 300); });
+    document.getElementById('searchPrev').addEventListener('click', navigatePrevMatch);
+    document.getElementById('searchNext').addEventListener('click', navigateNextMatch);
+    document.getElementById('clearSearch').addEventListener('click', clearSearch);
+    document.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); document.getElementById('searchInput').focus(); }
+        if (e.key === 'F3' || (e.key === 'Enter' && document.activeElement.id === 'searchInput')) { e.preventDefault(); e.shiftKey ? navigatePrevMatch() : navigateNextMatch(); }
+        if (e.key === 'Escape') { if (document.getElementById('passwordOverlay').classList.contains('visible')) hidePasswordPrompt(); else { clearSearch(); document.getElementById('searchInput').blur(); } }
+    });
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
+}
+
+// ========================================
+// Init
+// ========================================
+async function init() {
+    discoverNotes();
+    await initPyodide();
+    buildNavigation();
+    setupEventListeners();
+    setupBackToTop();
+    console.log('📚 Notes Viewer initialized:', AppState.notes.size, 'notes in', AppState.groups.size, 'groups');
+}
+document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
