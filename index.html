@@ -255,7 +255,170 @@
         .truncation-toggle { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 8px 12px; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease; font-size: 12px; display: flex; align-items: center; gap: 8px; }
         .truncation-toggle:hover { background: var(--bg-hover); color: var(--text-primary); }
         .truncation-toggle.active { background: var(--accent-blue); border-color: var(--accent-blue); color: var(--bg-primary); }
-        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } .content-area { padding: 16px; } .top-bar { padding: 12px 16px; } .search-container { display: none; } .mobile-menu-btn { display: flex; } .toc-list { columns: 1; } }
+        .pdf-download-btn { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 8px 12px; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease; font-size: 13px; display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); }
+        .pdf-download-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .pdf-download-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .pdf-download-btn.downloading { background: var(--accent-blue); border-color: var(--accent-blue); color: var(--bg-primary); }
+        /* Responsive Design - Touch Devices */
+        @media (max-width: 1200px) {
+            .sidebar { width: 280px; min-width: 280px; }
+            .main-content { margin-left: 280px; }
+            .content-area { padding: 24px; max-width: 100%; }
+            .toc-list { columns: 1; }
+        }
+        @media (max-width: 1024px) {
+            .sidebar { width: 260px; min-width: 260px; }
+            .main-content { margin-left: 260px; }
+            .content-area { padding: 20px; }
+            .top-bar { padding: 12px 20px; gap: 12px; }
+        }
+        @media (max-width: 768px) {
+            /* Layout adjustments */
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; width: 280px; }
+            .sidebar.open { transform: translateX(0); z-index: 200; box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3); }
+            .main-content { margin-left: 0; }
+            .content-area { padding: 16px; max-width: 100%; }
+            .top-bar { padding: 12px 16px; gap: 8px; }
+            .top-bar-left { gap: 12px; }
+            .top-bar-right { gap: 8px; }
+            
+            /* Search container - hide on mobile, show toggle */
+            .search-container { display: none; }
+            .mobile-menu-btn { display: flex; min-width: 44px; min-height: 44px; }
+            
+            /* Navigation adjustments */
+            .master-toc-container { margin-bottom: 8px; }
+            .special-nav-item { padding: 12px; min-height: 44px; }
+            .nav-item { padding: 10px 12px; min-height: 44px; margin-left: 12px; }
+            .nav-dropdown-header { padding: 10px 12px; min-height: 44px; }
+            
+            /* Content adjustments */
+            .toc-list { columns: 1; }
+            .toc-container { padding: 16px; margin-bottom: 24px; }
+            .content-title { font-size: 24px; margin-bottom: 4px; }
+            .content-header { margin-bottom: 20px; padding-bottom: 16px; }
+            
+            /* Markdown body */
+            .markdown-body h1 { font-size: 22px; margin: 24px 0 12px; }
+            .markdown-body h2 { font-size: 18px; margin: 20px 0 10px; }
+            .markdown-body h3 { font-size: 16px; margin: 16px 0 8px; }
+            .markdown-body h4, .markdown-body h5, .markdown-body h6 { font-size: 14px; margin: 12px 0 6px; }
+            .markdown-body p { margin: 12px 0; font-size: 16px; }
+            .markdown-body code { font-size: 12px; padding: 2px 4px; }
+            .markdown-body pre { padding: 12px; margin: 12px 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            
+            /* Tables */
+            .markdown-body table { font-size: 13px; margin: 12px 0; }
+            .markdown-body th, .markdown-body td { padding: 8px 10px; }
+            
+            /* Buttons and controls */
+            .truncation-toggle { min-height: 44px; padding: 10px; font-size: 12px; }
+            .theme-toggle { min-height: 44px; min-width: 44px; padding: 8px; }
+            .pdf-download-btn { min-height: 44px; padding: 10px; font-size: 12px; }
+            .search-btn { min-height: 44px; min-width: 44px; padding: 10px; }
+            
+            /* Filter and table controls */
+            .table-filter-wrapper { padding: 10px; margin-bottom: 8px; }
+            .filter-rule { gap: 8px; }
+            .filter-rule select, .filter-rule input { padding: 8px 6px; font-size: 12px; min-height: 40px; }
+            .filter-btn { min-height: 40px; padding: 8px 10px; font-size: 11px; }
+            .copy-table-btn { min-height: 40px; padding: 8px 10px; }
+            
+            /* Modal adjustments */
+            .password-modal { padding: 24px; max-width: 90%; }
+            .password-input { padding: 12px; font-size: 16px; }
+            .password-btn { padding: 12px; min-height: 44px; font-size: 14px; }
+            
+            /* Media gallery */
+            .media-gallery { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+            .media-item-title { font-size: 14px; }
+            .media-item-caption { font-size: 12px; }
+        }
+        @media (max-width: 600px) {
+            /* Extra small screens */
+            .sidebar { width: 100%; max-width: 280px; }
+            .sidebar-header { padding: 16px; }
+            .sidebar-title { font-size: 13px; }
+            .sidebar-logo { font-size: 12px; }
+            
+            .content-area { padding: 12px; }
+            .top-bar { padding: 10px 12px; }
+            .breadcrumb { font-size: 11px; display: none; }
+            
+            /* Content */
+            .content-title { font-size: 20px; gap: 8px; }
+            .content-title-emoji { font-size: 24px; }
+            .content-meta { font-size: 10px; }
+            
+            /* Typography */
+            .markdown-body h1 { font-size: 18px; margin: 16px 0 8px; padding-bottom: 8px; }
+            .markdown-body h2 { font-size: 16px; margin: 12px 0 6px; }
+            .markdown-body h3 { font-size: 14px; margin: 10px 0 4px; }
+            .markdown-body p { font-size: 14px; margin: 8px 0; }
+            .markdown-body ul, .markdown-body ol { padding-left: 20px; margin: 8px 0; }
+            .markdown-body li { margin: 4px 0; }
+            
+            /* Tables - horizontal scroll */
+            .markdown-body table { font-size: 12px; display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; }
+            .markdown-body th, .markdown-body td { padding: 6px 8px; }
+            
+            /* Buttons */
+            .truncation-toggle { padding: 8px; font-size: 11px; }
+            .pdf-download-btn { padding: 8px 10px; font-size: 11px; }
+            
+            /* TOC */
+            .toc-container { padding: 12px; margin-bottom: 16px; }
+            .toc-title { font-size: 10px; margin-bottom: 8px; }
+            .toc-link { font-size: 12px; }
+        }
+        @media (max-width: 480px) {
+            /* Phones */
+            .main-content { margin-left: 0; }
+            .content-area { padding: 8px; }
+            .top-bar { padding: 8px 10px; gap: 4px; }
+            .top-bar-right { gap: 4px; }
+            
+            /* Hide less important buttons on very small screens */
+            .pdf-download-btn span:last-child { display: none; }
+            .pdf-download-btn { padding: 8px; }
+            
+            .content-title { font-size: 18px; margin-bottom: 2px; }
+            .content-title-emoji { font-size: 20px; }
+            
+            /* Navigation */
+            .special-nav-item { font-size: 12px; padding: 10px; }
+            .nav-item { font-size: 12px; padding: 8px; margin-left: 8px; }
+            
+            /* Markdown */
+            .markdown-body h1 { font-size: 16px; margin: 12px 0 6px; }
+            .markdown-body h2 { font-size: 14px; margin: 10px 0 4px; }
+            .markdown-body h3 { font-size: 12px; margin: 8px 0 2px; }
+            .markdown-body p { font-size: 13px; margin: 6px 0; line-height: 1.5; }
+            .markdown-body code { font-size: 11px; }
+            .markdown-body pre { padding: 8px; font-size: 11px; }
+            
+            .markdown-body table { font-size: 11px; }
+            .markdown-body th, .markdown-body td { padding: 4px 6px; }
+            
+            /* TOC */
+            .toc-list { columns: 1; }
+            .toc-item { margin: 3px 0; }
+            .toc-link { font-size: 11px; }
+            
+            /* Blocks */
+            .markdown-body blockquote { padding-left: 12px; margin: 8px 0; }
+            .markdown-body hr { margin: 16px 0; }
+        }
+        @media (touch-enabled), (hover: none) {
+            /* Touch-friendly adjustments */
+            .nav-item:hover { transform: none; background: var(--bg-hover); }
+            .special-nav-item:hover { transform: none; background: var(--bg-hover); opacity: 0.8; }
+            .toc-link:hover { background: var(--bg-tertiary); }
+            .markdown-body a { padding: 2px 2px; border-radius: 2px; }
+            .markdown-body a:active { background: var(--highlight-bg); }
+            .search-btn { -webkit-user-select: none; user-select: none; }
+            .copy-table-btn { -webkit-user-select: none; user-select: none; }
+        }
         .mobile-menu-btn { display: none; background: transparent; border: none; color: var(--text-primary); font-size: 24px; cursor: pointer; padding: 4px; }
         /* Protection styles: disable selection, image/link interaction and printing for protected content */
         .nav-item-protect { margin-left: 6px; font-size: 12px; color: var(--accent-purple); }
@@ -319,6 +482,7 @@
                     </div>
                 </div>
                 <div class="top-bar-right">
+                    <button class="pdf-download-btn" id="pdfDownloadBtn" title="Download as PDF">📥 PDF</button>
                     <button class="truncation-toggle" id="truncationToggle" title="Toggle table cell truncation">📋 Full Text</button>
                     <button class="theme-toggle" id="themeToggle" title="Toggle light/dark mode">🌙</button>
                 </div>
@@ -391,6 +555,7 @@ window.noteW12Content = `# देवनागरी\n\n## वर्णमाल�
 window.noteW12Meta = { name: "देवनागरी", emoji: "📜", password: null, protection: "NO" };
     </script>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
 // ========================================
 // Application State
@@ -401,6 +566,124 @@ const AppState = {
     unlockedNotes: new Set(), searchMatches: [], currentMatchIndex: -1, currentProtected: false,
     originalContent: '', hasReadme: false, combinedViewHeadingMap: {},
     headingIdMap: {}, headingCounter: 0, truncateTableCells: true, allTableCells: []
+};
+
+// ========================================
+// PDF Download Manager
+// ========================================
+const PDFDownloadManager = {
+    init() {
+        const btn = document.getElementById('pdfDownloadBtn');
+        if (btn) {
+            btn.addEventListener('click', () => this.downloadPDF());
+        }
+    },
+    async downloadPDF() {
+        const btn = document.getElementById('pdfDownloadBtn');
+        const contentArea = document.getElementById('contentArea');
+        const markdownBody = document.getElementById('markdownBody');
+        
+        if (!markdownBody) {
+            alert('No content to download');
+            return;
+        }
+        
+        btn.disabled = true;
+        btn.classList.add('downloading');
+        const originalText = btn.textContent;
+        btn.textContent = '⏳ Generating...';
+        
+        try {
+            // Create a temporary style element for PDF-specific styling
+            const pdfStyleId = 'pdf-temp-styles';
+            let pdfStyle = document.getElementById(pdfStyleId);
+            if (!pdfStyle) {
+                pdfStyle = document.createElement('style');
+                pdfStyle.id = pdfStyleId;
+                pdfStyle.textContent = `
+                    @media print {
+                        .markdown-body h1 { font-size: 18px !important; font-weight: 700 !important; margin: 16px 0 8px !important; padding-bottom: 8px !important; border-bottom: 2px solid #000 !important; }
+                        .markdown-body h2 { font-size: 16px !important; font-weight: 700 !important; margin: 14px 0 8px !important; color: #000 !important; }
+                        .markdown-body h3 { font-size: 14px !important; font-weight: 700 !important; margin: 12px 0 6px !important; }
+                        .markdown-body h4, .markdown-body h5, .markdown-body h6 { font-size: 13px !important; font-weight: 700 !important; margin: 10px 0 6px !important; }
+                        .markdown-body { color: #000 !important; font-size: 12px !important; line-height: 1.6 !important; }
+                        .markdown-body p { margin: 8px 0 !important; }
+                        .markdown-body a { color: #0366d6 !important; }
+                        .markdown-body table { font-size: 11px !important; }
+                        .markdown-body code { background: #f6f8fa !important; color: #24292e !important; }
+                        .markdown-body pre { background: #f6f8fa !important; color: #24292e !important; }
+                    }
+                `;
+                document.head.appendChild(pdfStyle);
+            }
+            
+            // Save original display states
+            const topBar = document.querySelector('.top-bar');
+            const tableFilters = document.querySelectorAll('.table-filter-wrapper');
+            const tocContainer = document.getElementById('toc-container');
+            const sidebar = document.getElementById('sidebar');
+            
+            const savedStates = {
+                topBar: topBar ? topBar.style.display : '',
+                sidebar: sidebar ? sidebar.style.display : '',
+                tocContainer: tocContainer ? tocContainer.style.display : '',
+                filters: []
+            };
+            
+            tableFilters.forEach(filter => {
+                savedStates.filters.push(filter.style.display);
+                filter.style.display = 'none';
+            });
+            
+            // Hide elements for PDF
+            if (topBar) topBar.style.display = 'none';
+            if (tocContainer) tocContainer.style.display = 'none';
+            if (sidebar) sidebar.style.display = 'none';
+            
+            // Get the title for the PDF filename
+            const titleEl = contentArea.querySelector('.content-title');
+            const titleText = titleEl ? titleEl.textContent.trim().substring(1).trim() : 'Document';
+            const filename = `${titleText.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${new Date().toISOString().split('T')[0]}.pdf`;
+            
+            // Configure html2pdf options with improved quality settings
+            const opt = {
+                margin: 10,
+                filename: filename,
+                image: { type: 'png', quality: 1 },
+                html2canvas: { scale: 1, useCORS: true, allowTaint: true, logging: false, backgroundColor: '#ffffff' },
+                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4', compress: false }
+            };
+            
+            // Generate PDF from the actual contentArea in the DOM
+            await html2pdf().set(opt).from(contentArea).save();
+            
+            // Restore original display states
+            if (topBar) topBar.style.display = savedStates.topBar;
+            if (tocContainer) tocContainer.style.display = savedStates.tocContainer;
+            if (sidebar) sidebar.style.display = savedStates.sidebar;
+            tableFilters.forEach((filter, idx) => {
+                filter.style.display = savedStates.filters[idx];
+            });
+            
+            // Remove temporary style
+            if (pdfStyle && pdfStyle.parentNode) {
+                pdfStyle.parentNode.removeChild(pdfStyle);
+            }
+            
+            btn.textContent = '✓ Done!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.disabled = false;
+                btn.classList.remove('downloading');
+            }, 1500);
+        } catch (error) {
+            console.error('PDF generation error:', error);
+            alert('Error generating PDF: ' + error.message);
+            btn.textContent = originalText;
+            btn.disabled = false;
+            btn.classList.remove('downloading');
+        }
+    }
 };
 
 // ========================================
@@ -1453,6 +1736,7 @@ function setupEventListeners() {
 async function init() {
     ThemeManager.init();
     TruncationManager.init();
+    PDFDownloadManager.init();
     discoverNotes();
     await initPyodide();
     buildNavigation();
