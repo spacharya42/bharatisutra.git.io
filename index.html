@@ -1094,16 +1094,35 @@ function copyTableToClipboard(table, button) {
 function getTableData(table) {
     const headers = [];
     const rows = [];
+    
+    // Helper function to extract text preserving line breaks
+    const getCellContent = (cell) => {
+        const cloned = cell.cloneNode(true);
+        let text = '';
+        cloned.childNodes.forEach(node => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                text += node.textContent;
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                if (node.tagName === 'BR') {
+                    text += '\n';
+                } else {
+                    text += node.textContent;
+                }
+            }
+        });
+        return text.trim();
+    };
+    
     table.querySelectorAll('thead tr').forEach(row => {
-        row.querySelectorAll('th').forEach(cell => headers.push(cell.textContent.trim()));
+        row.querySelectorAll('th').forEach(cell => headers.push(getCellContent(cell)));
     });
     if (headers.length === 0) {
         const firstRow = table.querySelector('tr');
-        if (firstRow) firstRow.querySelectorAll('th').forEach(cell => headers.push(cell.textContent.trim()));
+        if (firstRow) firstRow.querySelectorAll('th').forEach(cell => headers.push(getCellContent(cell)));
     }
     table.querySelectorAll('tbody tr, tr:not(:first-child)').forEach(row => {
         const cells = [];
-        row.querySelectorAll('td, th').forEach(cell => cells.push(cell.textContent.trim()));
+        row.querySelectorAll('td, th').forEach(cell => cells.push(getCellContent(cell)));
         if (cells.length > 0) rows.push(cells);
     });
     return { headers, rows };
@@ -1111,10 +1130,11 @@ function getTableData(table) {
 
 function tableToMarkdown(data) {
     const { headers, rows } = data;
-    let markdown = '| ' + headers.join(' | ') + ' |\n';
+    const escapeMarkdown = (str) => str.replace(/\n/g, '<br>');
+    let markdown = '| ' + headers.map(escapeMarkdown).join(' | ') + ' |\n';
     markdown += '|' + headers.map(() => '---|').join('') + '\n';
     rows.forEach(row => {
-        markdown += '| ' + row.join(' | ') + ' |\n';
+        markdown += '| ' + row.map(escapeMarkdown).join(' | ') + ' |\n';
     });
     return markdown;
 }
@@ -1131,12 +1151,20 @@ function tableToJSON(data) {
 
 function tableToHTML(data) {
     const { headers, rows } = data;
+    const escapeHTML = (str) => {
+        const div = document.createElement('div');
+        div.textContent = str;
+        let html = div.innerHTML;
+        // Preserve line breaks as <br> tags
+        html = html.replace(/\n/g, '<br>');
+        return html;
+    };
     let html = '<table>\n<thead>\n<tr>\n';
-    headers.forEach(header => html += `<th>${header}</th>\n`);
+    headers.forEach(header => html += `<th>${escapeHTML(header)}</th>\n`);
     html += '</tr>\n</thead>\n<tbody>\n';
     rows.forEach(row => {
         html += '<tr>\n';
-        row.forEach(cell => html += `<td>${cell}</td>\n`);
+        row.forEach(cell => html += `<td>${escapeHTML(cell)}</td>\n`);
         html += '</tr>\n';
     });
     html += '</tbody>\n</table>';
@@ -1146,7 +1174,8 @@ function tableToHTML(data) {
 function tableToCSV(data) {
     const { headers, rows } = data;
     const escapeCSV = (str) => {
-        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        // CSV fields with line breaks, commas, or quotes must be quoted and internal quotes doubled
+        if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
             return '"' + str.replace(/"/g, '""') + '"';
         }
         return str;
@@ -1160,6 +1189,7 @@ function tableToCSV(data) {
 
 function tableToTSV(data) {
     const { headers, rows } = data;
+    // TSV: preserve line breaks as-is within tab-separated values
     let tsv = headers.join('\t') + '\n';
     rows.forEach(row => {
         tsv += row.join('\t') + '\n';
