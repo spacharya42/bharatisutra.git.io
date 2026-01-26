@@ -249,6 +249,12 @@
         .pyodide-text { font-family: var(--font-mono); font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; }
         .pyodide-progress { width: 200px; height: 4px; background: var(--bg-tertiary); border-radius: 2px; overflow: hidden; }
         .pyodide-progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)); width: 0%; transition: width 0.3s ease; }
+        /* Table cell truncation styles */
+        .table-cell-truncated { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; position: relative; transition: all 0.2s ease; }
+        .table-cell-truncated:hover { background: var(--bg-hover); }
+        .truncation-toggle { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 8px 12px; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+        .truncation-toggle:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .truncation-toggle.active { background: var(--accent-blue); border-color: var(--accent-blue); color: var(--bg-primary); }
         @media (max-width: 768px) { .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } .content-area { padding: 16px; } .top-bar { padding: 12px 16px; } .search-container { display: none; } .mobile-menu-btn { display: flex; } .toc-list { columns: 1; } }
         .mobile-menu-btn { display: none; background: transparent; border: none; color: var(--text-primary); font-size: 24px; cursor: pointer; padding: 4px; }
         /* Protection styles: disable selection, image/link interaction and printing for protected content */
@@ -313,6 +319,7 @@
                     </div>
                 </div>
                 <div class="top-bar-right">
+                    <button class="truncation-toggle" id="truncationToggle" title="Toggle table cell truncation">📋 Full Text</button>
                     <button class="theme-toggle" id="themeToggle" title="Toggle light/dark mode">🌙</button>
                 </div>
             </header>
@@ -350,11 +357,11 @@ window.combinedV01Meta = { name: "Python Collection", emoji: "🐍", description
 window.combinedV02Meta = { name: "Data Collection", emoji: "📊", description: "Unit V2" };
 window.publicAllMeta = { name: "Public All Notes", emoji: "🌐", description: "All public notes" };
 
-window.noteU11Content = `# Introduction to JavaScript\n\n## Overview\nJavaScript is versatile.\n\n## Features Table\n\n| Feature | Type | Supported |\n|---------|------|----------|\n| Variables | let/const | Yes |\n| Functions | Arrow | Yes |\n| Classes | ES6 | Yes |\n| Modules | ESM | Yes |\n| Async | Promise | Yes |`;
+window.noteU11Content = `# Introduction to JavaScript\n\n## Overview\nJavaScript is versatile.\n\n## Features Table\n\n| Feature | Type | Supported |\n|---------|------|----------|\n| Variables | let/const | Yes १२ माघ, काठमाडौं । सुनसरी-१ का उम्मेदवार हर्क साम्पाङविरुद्ध निर्वाचन आयोगमा उजुरी परेको छ । श्रम संस्कृति पार्टीका अध्यक्षसमेत रहेका साम्पाङले चुनावी प्रचारप्रचारमा बालबालिकाको प्रयोग गरेको आरोपमा उजुरी परेको हो । <br>१२ माघ, काठमाडौं । सुनसरी-१ का उम्मेदवार हर्क साम्पाङविरुद्ध निर्वाचन आयोगमा उजुरी परेको छ । श्रम संस्कृति पार्टीका अध्यक्षसमेत रहेका साम्पाङले चुनावी प्रचारप्रचारमा बालबालिकाको प्रयोग गरेको आरोपमा उजुरी परेको हो ।|\n| Functions | Arrow | Yes |\n| Classes | ES6 | Yes |\n| Modules | ESM | Yes |\n| Async | Promise | Yes |`;
 window.noteU11Meta = { name: "JS Basics", emoji: "📒", password: null, protection: "NO" };
 
 window.noteU12Content = `# Advanced JavaScript\n\n## Closures\nClosures capture scope.\n\n## Performance\n\n| Method | Speed | Memory |\n|--------|-------|--------|\n| Callbacks | Fast | Low |\n| Promises | Medium | Medium |\n| Async/Await | Medium | Medium |`;
-window.noteU12Meta = { name: "JS Advanced", emoji: "📗", password: null, protection: "NO" };
+window.noteU12Meta = { name: "JS Advanced", emoji: "📗", password: null, protection: "YES" };
 
 window.noteU13Content = `# Security Patterns (Locked)\n\n## Auth Table\n\n| Method | Level |\n|--------|-------|\n| JWT | High |\n| OAuth | Very High |`;
 window.noteU13Meta = { name: "Security", emoji: "🔒", password: "secret123", protection: "YES" };
@@ -393,7 +400,7 @@ const AppState = {
     unitMeta: new Map(), combinedMeta: new Map(), currentNote: null,
     unlockedNotes: new Set(), searchMatches: [], currentMatchIndex: -1, currentProtected: false,
     originalContent: '', hasReadme: false, combinedViewHeadingMap: {},
-    headingIdMap: {}, headingCounter: 0
+    headingIdMap: {}, headingCounter: 0, truncateTableCells: true, allTableCells: []
 };
 
 // ========================================
@@ -421,6 +428,51 @@ const ThemeManager = {
     toggle() {
         const isDark = !document.body.classList.contains('light-mode');
         this.setTheme(isDark ? 'light' : 'dark');
+    }
+};
+
+// ========================================
+// Truncation Management
+// ========================================
+const TruncationManager = {
+    init() {
+        const savedTruncate = localStorage.getItem('truncateTableCells');
+        AppState.truncateTableCells = savedTruncate !== 'false';
+        const btn = document.getElementById('truncationToggle');
+        this.updateUI();
+        btn.addEventListener('click', () => this.toggle());
+    },
+    toggle() {
+        AppState.truncateTableCells = !AppState.truncateTableCells;
+        localStorage.setItem('truncateTableCells', AppState.truncateTableCells);
+        this.updateUI();
+        this.applyToAllTables();
+    },
+    updateUI() {
+        const btn = document.getElementById('truncationToggle');
+        if (AppState.truncateTableCells) {
+            btn.textContent = '📋 Full Text';
+            btn.classList.remove('active');
+        } else {
+            btn.textContent = '📋 Truncated';
+            btn.classList.add('active');
+        }
+    },
+    applyToAllTables() {
+        const body = document.getElementById('markdownBody');
+        if (!body) return;
+        body.querySelectorAll('table').forEach(table => {
+            table.querySelectorAll('td').forEach(cell => {
+                this.applyToCell(cell);
+            });
+        });
+    },
+    applyToCell(cell) {
+        if (AppState.truncateTableCells) {
+            cell.classList.add('table-cell-truncated');
+        } else {
+            cell.classList.remove('table-cell-truncated');
+        }
     }
 };
 
@@ -891,6 +943,19 @@ function setupTableFilters() {
         const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent.trim());
         if (headers.length === 0) return;
         
+        // Apply truncation to all table cells
+        table.querySelectorAll('td').forEach(cell => {
+            TruncationManager.applyToCell(cell);
+            // Add click handler to toggle full text on click
+            cell.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isCurrentlyTruncated = cell.classList.contains('table-cell-truncated');
+                if (isCurrentlyTruncated) {
+                    cell.title = cell.textContent;
+                }
+            });
+        });
+        
         // Check if this is a media table
         if (detectMediaTable(table)) {
             const gallery = convertToMediaGallery(table);
@@ -1357,6 +1422,7 @@ function setupEventListeners() {
 // ========================================
 async function init() {
     ThemeManager.init();
+    TruncationManager.init();
     discoverNotes();
     await initPyodide();
     buildNavigation();
