@@ -34,11 +34,99 @@ A sophisticated, feature-rich markdown notes viewer with support for multiple la
 - **Breadcrumb Navigation**: Easy tracking of current document location hierarchy
 - **Full-Text Search**: Instant search with support for both English and Devanagari (Nepali) text
 - **Dark/Light Mode**: Automatic theme switching with persistent preference storage
-- **Responsive Design**: Perfectly adapts to desktop, tablet, and mobile devices
+- **Responsive Design**: Perfectly adapts to desktop, tablet, and mobile devices (touch-optimized)
 - **Syntax Highlighting**: Code blocks with language-specific highlighting
 - **Heading Navigation**: Auto-generated table of contents for each note
+- **PDF Export**: Download notes as PDF with professional formatting and hidden ribbons
+- **Print Support**: Clean print preview with filters and search bars hidden
 
-### 📊 Advanced Table Features
+### � PDF Export & Printing
+
+#### PDF Download Feature
+- **One-Click Export**: Download any note as a professionally formatted PDF
+- **Smart Formatting**: Headings are properly sized and bold for readability
+- **Clean Output**: Search ribbon, filter ribbon, and sidebar automatically hidden in PDF
+- **High Quality**: PNG rendering with normal scale for crisp, readable text (no blur)
+- **Smart Naming**: PDFs automatically named after note title with current date
+- **File Size**: Optimized files with proper compression settings
+
+#### Print Preview (Ctrl+P)
+- **Clean Layout**: Search bar, filter ribbons, and sidebar hidden in print preview
+- **Optimized Typography**: Fonts and sizes adjusted for print readability
+- **Page Breaks**: Intelligent page breaking for smooth content flow
+- **Full Width**: Content expands to full page width for better use of paper space
+- **Protected Content Notice**: Shows warning if attempting to print protected notes
+
+#### PDF Configuration Examples
+
+**Standard PDF Export**
+```javascript
+// Click the 📥 PDF button to download current note
+// File will be named: note-name_2024-01-26.pdf
+// Includes: Content header, all headings, tables, code blocks
+// Excludes: Search bar, filters, sidebar, navigation UI
+```
+
+**Customizing PDF Styles**
+The PDF rendering uses print media queries for optimal formatting:
+```css
+@media print {
+    .markdown-body h1 { font-size: 18px; font-weight: 700; }
+    .markdown-body h2 { font-size: 16px; font-weight: 700; }
+    /* Custom PDF styling applied automatically */
+}
+```
+
+### 📱 Mobile & Touch Device Support
+
+#### Responsive Breakpoints
+- **1200px+**: Full desktop layout with sidebar
+- **1024px - 1200px**: Optimized tablet layout
+- **768px - 1024px**: Collapsible sidebar for tablets
+- **600px - 768px**: Mobile optimization with compact UI
+- **480px - 600px**: Small phone optimization
+- **< 480px**: Ultra-compact one-handed layout
+
+#### Touch-Friendly Features
+- **Minimum 44x44px tap targets**: All buttons sized for easy touch
+- **Smooth scrolling**: `-webkit-overflow-scrolling: touch` for tables and lists
+- **No hover transforms**: Touch devices get tap feedback instead
+- **Adequate spacing**: Proper gaps between interactive elements
+- **Responsive modals**: Password dialogs fit any screen size
+- **Horizontal table scroll**: Tables scroll smoothly on touch devices
+- **One-handed navigation**: Sidebar menu accessible from any screen size
+
+#### Device-Specific Optimizations
+```
+Phones (< 600px):
+  - Sidebar toggles with menu button
+  - Search hidden, full-screen focus on content
+  - Buttons show icons only on < 480px
+  - Tables scroll horizontally
+  - Typography scales down gracefully
+
+Tablets (600px - 1024px):
+  - Sidebar auto-collapsible
+  - Better spacing for touch
+  - Larger tap targets
+  - Readable typography
+
+Desktops (1024px+):
+  - Full sidebar always visible
+  - Maximum content width
+  - All features accessible
+  - Hover effects enabled
+```
+
+### 🖨️ Print-Friendly Design
+
+All print media queries ensure clean printed output:
+- Filter ribbons are hidden
+- Search bars are removed
+- Sidebars don't print
+- Content scales properly on paper
+- Protected content shows notice instead of content
+- Maintains all styling for professional appearance
 
 #### Table Filtering System
 - **Multi-Rule Filtering**: Create complex filters with multiple conditions
@@ -355,6 +443,70 @@ Searching for Nepali text:
 - **Clear** to reset the search and return to full document
 - **Keyboard shortcut**: Press `/` to focus search (when implemented)
 - Search includes headings, body text, and table content
+
+### Exporting to PDF
+
+#### Basic PDF Download
+1. View the note you want to export
+2. Click the **📥 PDF** button in the top-right toolbar
+3. Button shows "⏳ Generating..." while processing
+4. PDF automatically downloads with the note's title as filename
+5. Button shows "✓ Done!" confirmation
+
+#### PDF Features
+- **Professional Formatting**: All headings properly sized and bold
+- **Clean Layout**: Search and filter ribbons automatically hidden
+- **Crisp Text**: High-quality PNG rendering with proper scale (no blur)
+- **Smart Naming**: Files named as `note-title_YYYY-MM-DD.pdf`
+- **Full Content**: All text, tables, code blocks, and formatting included
+
+#### PDF Quality Settings
+The PDF generator is optimized for:
+- **Text Clarity**: 100% scale for readable fonts
+- **Image Quality**: PNG format for sharp rendering
+- **File Size**: Optimized compression without quality loss
+- **Page Layout**: A4 portrait format with 10mm margins
+
+#### PDF Examples
+
+**Example 1: Export a note**
+```
+1. Open "JavaScript Basics" note
+2. Click 📥 PDF button
+3. Gets: javascript-basics_2024-01-26.pdf
+4. Contains: All content, formatted headings, tables
+```
+
+**Example 2: Share with others**
+```
+1. Export note as PDF
+2. Send file via email or messaging
+3. Recipients see professional formatted document
+4. Works on any device that opens PDFs
+```
+
+### Printing Notes (Ctrl+P)
+
+#### Print Preview
+1. Press **Ctrl+P** (or **Cmd+P** on Mac)
+2. Print preview shows clean layout
+3. Search and filter ribbons are hidden
+4. Sidebar is not included
+5. Content is full-width
+6. Click "Print" to send to printer
+
+#### Print Quality
+- Professional formatting maintained
+- All colors and styling preserved
+- Tables format properly across pages
+- Code blocks remain readable
+- Protected content shows notice instead
+
+#### Printing Tips
+- Use "Save as PDF" to create PDF copies from print dialog
+- Select specific pages if needed
+- Adjust margins in print settings if desired
+- Preview shows exactly what will print
 
 ### Theme Switching
 
@@ -992,6 +1144,17 @@ More details...
 - Search finds content easily
 - Reader can scan quickly
 - Printing is well-organized
+- Responsive on all devices
+
+#### Mobile Viewing Considerations
+When creating content for mobile viewing:
+- Use short paragraphs for readability
+- Break long tables into smaller sections
+- Avoid extremely wide tables (will need horizontal scrolling)
+- Use headings to create natural stopping points
+- Include descriptive text for all tables/images
+- Keep list items concise
+- Use proper heading hierarchy (h1 → h2 → h3)
 
 #### Table Formatting Best Practices
 ```markdown
@@ -1424,7 +1587,24 @@ Copyright (c) 2024 Spacharya42
 
 ## Version History
 
-### v1.0.0 (Current)
+### v1.1.0 (Latest)
+**Release Date**: January 26, 2026
+
+#### New Features
+- ✅ **PDF Export**: Download notes as professionally formatted PDFs with one click
+- ✅ **Responsive Design**: Full touch and mobile device support with optimized breakpoints
+- ✅ **Print Support**: Clean print preview with ribbons and sidebars hidden
+- ✅ **Mobile Optimization**: Touch-friendly 44x44px tap targets, smooth scrolling, one-handed navigation
+- ✅ **Improved Typography**: Print and PDF quality text rendering without blur
+
+#### Improvements
+- 📱 Added comprehensive responsive breakpoints (480px, 600px, 768px, 1024px, 1200px)
+- 📄 PDF generation with clean heading formatting (18px, 16px, 14px for H1-H3)
+- 🖨️ Print media queries hiding search, filters, and sidebars
+- 👆 Touch-optimized spacing and button sizes across all breakpoints
+- 🎨 Improved mobile typography with responsive font scaling
+
+### v1.0.0 (Previous)
 **Release Date**: January 2024
 
 #### Features
@@ -1437,7 +1617,6 @@ Copyright (c) 2024 Spacharya42
 - ✅ Dark/Light theme support
 - ✅ Password-protected notes
 - ✅ Smart link detection and processing
-- ✅ Responsive design for all devices
 - ✅ Zero external dependencies
 - ✅ Offline support
 
@@ -1457,5 +1636,5 @@ Copyright (c) 2024 Spacharya42
 
 **Made with ❤️ for knowledge enthusiasts**
 
-Last Updated: January 24, 2024
+Last Updated: January 26, 2026
 Maintained by: spacharya42
