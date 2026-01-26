@@ -645,7 +645,7 @@ function createUnitDropdown(group, unit) {
     for (const noteId of AppState.groups.get(group).get(unit)) {
         const note = AppState.notes.get(noteId), isLocked = note.meta.password !== null && !AppState.unlockedNotes.has(noteId), hasPwd = note.meta.password !== null;
         const item = document.createElement('div'); item.className = 'nav-item'; item.dataset.noteId = noteId;
-        item.innerHTML = `<span class="nav-item-emoji">${note.meta.emoji}</span><span class="nav-item-name">${note.meta.name}</span>${note.meta.protection === 'YES' ? '<span class="nav-item-protect">🛡️</span>' : ''}${hasPwd ? (isLocked ? '<span class="nav-item-lock">🔒</span>' : '<span class="nav-item-unlock">🔓</span>') : '<span class="nav-item-unlock">🔓</span>'}`;
+        item.innerHTML = `<span class="nav-item-emoji">${note.meta.emoji}</span><span class="nav-item-name">${note.meta.name}</span>${note.meta.protection === 'YES' ? '<span class="nav-item-protect">🚩</span>' : ''}${hasPwd ? (isLocked ? '<span class="nav-item-lock">🔒</span>' : '<span class="nav-item-unlock">🔓</span>') : '<span class="nav-item-unlock">🔓</span>'}`;
         item.addEventListener('click', e => { e.stopPropagation(); loadNote(noteId); });
         content.appendChild(item);
     }
