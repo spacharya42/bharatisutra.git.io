@@ -53,7 +53,7 @@
         html { scroll-behavior: smooth; }
         body { font-family: var(--font-serif); background: var(--bg-primary); color: var(--text-primary); line-height: 1.7; min-height: 100vh; transition: background-color 0.3s ease, color 0.3s ease; }
         .app-container { display: flex; min-height: 100vh; }
-        .sidebar { width: 340px; min-width: 340px; background: var(--bg-secondary); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; }
+        .sidebar { width: 340px; min-width: 340px; background: var(--bg-secondary); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; left: 0; top: 0; }
         .sidebar-header { padding: 24px; border-bottom: 1px solid var(--border-color); }
         .sidebar-logo { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--accent-blue); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
         .sidebar-title { font-size: 22px; font-weight: 600; color: var(--text-primary); }
@@ -200,6 +200,23 @@
         .copy-format-item:last-child { border-bottom: none; }
         .copy-format-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
         .copy-format-item.copied { background: var(--accent-green); color: #fff; border-bottom-color: var(--accent-green); }
+        /* Column Selection Styles */
+        .column-selector-wrapper { position: relative; display: flex; align-items: center; }
+        .column-selector-btn { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 6px 10px; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease; font-family: var(--font-mono); font-size: 11px; display: flex; align-items: center; gap: 6px; }
+        .column-selector-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .column-selector-dropdown { position: absolute; top: 100%; right: 0; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 101; min-width: 200px; display: none; margin-top: 4px; max-height: 400px; overflow-y: auto; }
+        .column-selector-dropdown.open { display: block; }
+        .column-selector-header { padding: 8px 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px; background: var(--bg-tertiary); font-weight: 600; font-size: 11px; color: var(--text-primary); }
+        .column-select-all { display: flex; align-items: center; gap: 6px; cursor: pointer; flex: 1; user-select: none; }
+        .column-select-all input[type="checkbox"] { cursor: pointer; }
+        .column-select-all span { font-size: 11px; }
+        .column-item { display: flex; align-items: center; padding: 8px 12px; cursor: pointer; transition: background 0.2s ease; border-bottom: 1px solid var(--border-color); }
+        .column-item:hover { background: var(--bg-hover); }
+        .column-item:last-child { border-bottom: none; }
+        .column-item input[type="checkbox"] { cursor: pointer; margin-right: 8px; }
+        .column-item label { flex: 1; cursor: pointer; font-size: 12px; color: var(--text-secondary); user-select: none; display: flex; align-items: center; }
+        .column-item input[type="checkbox"]:checked + label { color: var(--accent-blue); font-weight: 500; }
+        .column-selector-footer { padding: 8px 12px; border-top: 1px solid var(--border-color); background: var(--bg-tertiary); display: flex; gap: 6px; font-size: 10px; color: var(--text-muted); }
         .media-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin: 20px 0; }
         .media-item { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); overflow: hidden; transition: all 0.3s ease; cursor: pointer; }
         .media-item:hover { border-color: var(--accent-blue); box-shadow: 0 4px 12px rgba(88, 166, 255, 0.1); }
@@ -274,7 +291,7 @@
         }
         @media (max-width: 768px) {
             /* Layout adjustments */
-            .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; width: 280px; }
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; width: 280px; min-width: 280px; left: 0; top: 0; }
             .sidebar.open { transform: translateX(0); z-index: 200; box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3); }
             .main-content { margin-left: 0; }
             .content-area { padding: 16px; max-width: 100%; }
@@ -323,6 +340,8 @@
             .filter-rule select, .filter-rule input { padding: 8px 6px; font-size: 12px; min-height: 40px; }
             .filter-btn { min-height: 40px; padding: 8px 10px; font-size: 11px; }
             .copy-table-btn { min-height: 40px; padding: 8px 10px; }
+            .column-selector-btn { min-height: 40px; padding: 8px 10px; }
+            .column-selector-dropdown { max-height: 300px; }
             
             /* Modal adjustments */
             .password-modal { padding: 24px; max-width: 90%; }
@@ -1260,7 +1279,9 @@ function setupTableFilters() {
         
         processTableLinks(table);
         const wrapper = document.createElement('div'); wrapper.className = 'table-filter-wrapper'; wrapper.id = `filter-${idx}`;
-        wrapper.innerHTML = `<div class="table-filter-header"><span class="table-filter-title">🔍 Filter Table</span><button class="table-filter-toggle" data-idx="${idx}">Show/Hide</button></div><div class="table-filter-rules" id="rules-${idx}" style="display:none;"></div><div class="filter-actions" id="actions-${idx}" style="display:none;"><button class="filter-btn filter-add-btn" data-idx="${idx}">+ Add Rule</button><button class="filter-btn filter-apply-btn" data-idx="${idx}">Apply</button><button class="filter-btn filter-clear-btn" data-idx="${idx}">Clear</button></div><div class="filter-results" id="results-${idx}"></div><div class="table-copy-wrapper"><button class="copy-table-btn" data-table-idx="${idx}" title="Copy table in different formats">📋 Copy</button><div class="copy-formats-dropdown" id="dropdown-${idx}"><div class="copy-format-item" data-format="markdown">Markdown</div><div class="copy-format-item" data-format="json">JSON</div><div class="copy-format-item" data-format="html">HTML</div><div class="copy-format-item" data-format="csv">CSV</div><div class="copy-format-item" data-format="tsv">TSV</div></div></div>`;
+        const columnSelectorId = `col-selector-${idx}`;
+        const columnDropdownId = `col-dropdown-${idx}`;
+        wrapper.innerHTML = `<div class="table-filter-header"><span class="table-filter-title">🔍 Filter Table</span><button class="table-filter-toggle" data-idx="${idx}">Show/Hide</button></div><div class="table-filter-rules" id="rules-${idx}" style="display:none;"></div><div class="filter-actions" id="actions-${idx}" style="display:none;"><button class="filter-btn filter-add-btn" data-idx="${idx}">+ Add Rule</button><button class="filter-btn filter-apply-btn" data-idx="${idx}">Apply</button><button class="filter-btn filter-clear-btn" data-idx="${idx}">Clear</button></div><div class="filter-results" id="results-${idx}"></div><div class="table-copy-wrapper" style="display: flex; gap: 8px; align-items: center;"><div class="column-selector-wrapper"><button class="column-selector-btn" id="${columnSelectorId}" title="Select columns to copy">📊 Columns</button><div class="column-selector-dropdown" id="${columnDropdownId}"><div class="column-selector-header"><label class="column-select-all"><input type="checkbox" class="select-all-cols" data-idx="${idx}" checked><span>All Columns</span></label></div><div class="column-items-list" id="cols-list-${idx}"></div><div class="column-selector-footer"><span id="col-count-${idx}">0/0 selected</span></div></div></div><button class="copy-table-btn" data-table-idx="${idx}" title="Copy table in different formats">📋 Copy</button><div class="copy-formats-dropdown" id="dropdown-${idx}"><div class="copy-format-item" data-format="markdown">Markdown</div><div class="copy-format-item" data-format="json">JSON</div><div class="copy-format-item" data-format="html">HTML</div><div class="copy-format-item" data-format="csv">CSV</div><div class="copy-format-item" data-format="tsv">TSV</div></div></div>`;
         table.parentNode.insertBefore(wrapper, table);
         wrapper.querySelector('.table-filter-toggle').addEventListener('click', () => {
             const rules = document.getElementById(`rules-${idx}`), actions = document.getElementById(`actions-${idx}`);
@@ -1272,11 +1293,15 @@ function setupTableFilters() {
         wrapper.querySelector('.filter-add-btn').addEventListener('click', () => addFilterRule(idx, headers));
         wrapper.querySelector('.filter-apply-btn').addEventListener('click', () => applyTableFilter(idx, table, headers));
         wrapper.querySelector('.filter-clear-btn').addEventListener('click', () => clearTableFilter(idx, table));
+        
+        // Initialize column selector
+        initializeColumnSelector(idx, headers, columnSelectorId, columnDropdownId);
+        
         const copyBtn = wrapper.querySelector('.copy-table-btn');
         const dropdown = wrapper.querySelector('.copy-formats-dropdown');
         copyBtn.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('open'); });
         dropdown.querySelectorAll('.copy-format-item').forEach(item => {
-            item.addEventListener('click', () => copyTableInFormat(table, item.dataset.format, copyBtn, dropdown));
+            item.addEventListener('click', () => copyTableInFormat(table, item.dataset.format, copyBtn, dropdown, idx));
         });
         document.addEventListener('click', (e) => {
             if (!wrapper.contains(e.target)) dropdown.classList.remove('open');
@@ -1357,6 +1382,100 @@ function clearTableFilter(idx, table) {
     document.getElementById(`results-${idx}`).textContent = '';
 }
 
+// ========================================
+// Column Selection Management
+// ========================================
+const columnSelectionState = new Map();
+
+function initializeColumnSelector(tableIdx, headers, buttonId, dropdownId) {
+    // Initialize state for this table
+    if (!columnSelectionState.has(tableIdx)) {
+        columnSelectionState.set(tableIdx, new Set(headers.map((_, i) => i)));
+    }
+    
+    const btn = document.getElementById(buttonId);
+    const dropdown = document.getElementById(dropdownId);
+    const itemsList = document.getElementById(`cols-list-${tableIdx}`);
+    
+    // Create column items
+    headers.forEach((header, idx) => {
+        const item = document.createElement('div');
+        item.className = 'column-item';
+        item.innerHTML = `<input type="checkbox" class="col-checkbox" data-col-idx="${idx}" data-table-idx="${tableIdx}" checked><label><span>${header || 'Column ' + (idx + 1)}</span></label>`;
+        itemsList.appendChild(item);
+        
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        checkbox.addEventListener('change', () => updateColumnSelection(tableIdx));
+        item.querySelector('label').addEventListener('click', (e) => {
+            e.preventDefault();
+            checkbox.checked = !checkbox.checked;
+            checkbox.dispatchEvent(new Event('change'));
+        });
+    });
+    
+    // Select all checkbox
+    const selectAllCheckbox = dropdown.querySelector('.select-all-cols');
+    selectAllCheckbox.addEventListener('change', () => toggleAllColumns(tableIdx));
+    
+    // Button click handler
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('open');
+    });
+    
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+        if (!dropdown.parentElement.contains(e.target)) {
+            dropdown.classList.remove('open');
+        }
+    });
+    
+    updateColumnSelection(tableIdx);
+}
+
+function updateColumnSelection(tableIdx) {
+    const checkboxes = document.querySelectorAll(`.col-checkbox[data-table-idx="${tableIdx}"]`);
+    const selected = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => parseInt(cb.dataset.colIdx));
+    
+    columnSelectionState.set(tableIdx, new Set(selected));
+    
+    // Update select all checkbox
+    const selectAllCheckbox = document.querySelector(`.select-all-cols[data-idx="${tableIdx}"]`);
+    const totalCols = checkboxes.length;
+    const selectedCols = selected.length;
+    
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = selectedCols === totalCols;
+    }
+    
+    // Update count display
+    const countDisplay = document.getElementById(`col-count-${tableIdx}`);
+    if (countDisplay) {
+        countDisplay.textContent = `${selectedCols}/${totalCols} selected`;
+    }
+}
+
+function toggleAllColumns(tableIdx) {
+    const selectAllCheckbox = document.querySelector(`.select-all-cols[data-idx="${tableIdx}"]`);
+    const checkboxes = document.querySelectorAll(`.col-checkbox[data-table-idx="${tableIdx}"]`);
+    
+    checkboxes.forEach(cb => {
+        cb.checked = selectAllCheckbox.checked;
+    });
+    
+    updateColumnSelection(tableIdx);
+}
+
+function getSelectedColumns(tableIdx) {
+    const selected = columnSelectionState.get(tableIdx);
+    if (!selected || selected.size === 0) {
+        return null;
+    }
+    return Array.from(selected).sort((a, b) => a - b);
+}
+
 function copyTableToClipboard(table, button) {
     if (AppState.currentProtected) { console.warn('Copy disabled for protected content'); return; }
     const rows = [];
@@ -1381,7 +1500,7 @@ function copyTableToClipboard(table, button) {
     });
 }
 
-function getTableData(table) {
+function getTableData(table, selectedColumns = null) {
     const headers = [];
     const rows = [];
     
@@ -1415,6 +1534,14 @@ function getTableData(table) {
         row.querySelectorAll('td, th').forEach(cell => cells.push(getCellContent(cell)));
         if (cells.length > 0) rows.push(cells);
     });
+    
+    // Filter by selected columns if provided
+    if (selectedColumns && selectedColumns.length > 0 && selectedColumns.length < headers.length) {
+        const filteredHeaders = headers.filter((_, idx) => selectedColumns.includes(idx));
+        const filteredRows = rows.map(row => row.filter((_, idx) => selectedColumns.includes(idx)));
+        return { headers: filteredHeaders, rows: filteredRows };
+    }
+    
     return { headers, rows };
 }
 
@@ -1487,9 +1614,12 @@ function tableToTSV(data) {
     return tsv;
 }
 
-function copyTableInFormat(table, format, button, dropdown) {
+function copyTableInFormat(table, format, button, dropdown, tableIdx) {
     if (AppState.currentProtected) { console.warn('Copy disabled for protected content'); return; }
-    const data = getTableData(table);
+    
+    // Get selected columns
+    const selectedColumns = getSelectedColumns(tableIdx);
+    const data = getTableData(table, selectedColumns);
     let content = '';
     
     switch (format) {
@@ -1735,6 +1865,13 @@ function setupEventListeners() {
     });
     
     document.getElementById('mobileMenuBtn').addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
+    
+    // Close sidebar when clicking on content area (mobile)
+    document.getElementById('contentArea').addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+            document.getElementById('sidebar').classList.remove('open');
+        }
+    });
 }
 
 // ========================================
