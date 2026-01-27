@@ -217,6 +217,8 @@
         .column-item label { flex: 1; cursor: pointer; font-size: 12px; color: var(--text-secondary); user-select: none; display: flex; align-items: center; }
         .column-item input[type="checkbox"]:checked + label { color: var(--accent-blue); font-weight: 500; }
         .column-selector-footer { padding: 8px 12px; border-top: 1px solid var(--border-color); background: var(--bg-tertiary); display: flex; gap: 6px; font-size: 10px; color: var(--text-muted); }
+        /* Hide columns in table display */
+        .markdown-body table th.hidden-column, .markdown-body table td.hidden-column { display: none; }
         .media-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin: 20px 0; }
         .media-item { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); overflow: hidden; transition: all 0.3s ease; cursor: pointer; }
         .media-item:hover { border-color: var(--accent-blue); box-shadow: 0 4px 12px rgba(88, 166, 255, 0.1); }
@@ -1295,7 +1297,7 @@ function setupTableFilters() {
         wrapper.querySelector('.filter-clear-btn').addEventListener('click', () => clearTableFilter(idx, table));
         
         // Initialize column selector
-        initializeColumnSelector(idx, headers, columnSelectorId, columnDropdownId);
+        initializeColumnSelector(idx, headers, columnSelectorId, columnDropdownId, table);
         
         const copyBtn = wrapper.querySelector('.copy-table-btn');
         const dropdown = wrapper.querySelector('.copy-formats-dropdown');
@@ -1386,12 +1388,31 @@ function clearTableFilter(idx, table) {
 // Column Selection Management
 // ========================================
 const columnSelectionState = new Map();
+const tableReferences = new Map();
 
-function initializeColumnSelector(tableIdx, headers, buttonId, dropdownId) {
+function initializeColumnSelector(tableIdx, headers, buttonId, dropdownId, table) {
+    // Store table reference for later use
+    tableReferences.set(tableIdx, table);
+    
     // Initialize state for this table
     if (!columnSelectionState.has(tableIdx)) {
         columnSelectionState.set(tableIdx, new Set(headers.map((_, i) => i)));
     }
+    
+    // Mark all table cells with column index
+    table.querySelectorAll('thead tr').forEach(row => {
+        const cells = row.querySelectorAll('th');
+        cells.forEach((cell, idx) => {
+            cell.dataset.colIdx = idx;
+        });
+    });
+    
+    table.querySelectorAll('tbody tr, tr:not(:first-child)').forEach(row => {
+        const cells = row.querySelectorAll('td, th');
+        cells.forEach((cell, idx) => {
+            cell.dataset.colIdx = idx;
+        });
+    });
     
     const btn = document.getElementById(buttonId);
     const dropdown = document.getElementById(dropdownId);
@@ -1455,6 +1476,26 @@ function updateColumnSelection(tableIdx) {
     if (countDisplay) {
         countDisplay.textContent = `${selectedCols}/${totalCols} selected`;
     }
+    
+    // Apply column visibility to table
+    applyColumnVisibility(tableIdx, selected, totalCols);
+}
+
+function applyColumnVisibility(tableIdx, selectedCols, totalCols) {
+    const table = tableReferences.get(tableIdx);
+    if (!table) return;
+    
+    // Update all rows in the table
+    table.querySelectorAll('tr').forEach(row => {
+        const cells = row.querySelectorAll('th, td');
+        cells.forEach((cell, idx) => {
+            if (selectedCols.includes(idx)) {
+                cell.classList.remove('hidden-column');
+            } else {
+                cell.classList.add('hidden-column');
+            }
+        });
+    });
 }
 
 function toggleAllColumns(tableIdx) {
