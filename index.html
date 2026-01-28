@@ -167,6 +167,7 @@
         .markdown-body hr { border: none; border-top: 1px solid var(--border-color); margin: 32px 0; }
         .markdown-body tr.filtered-out { display: none; }
         .markdown-body tr.filter-match { background: rgba(88, 166, 255, 0.1); }
+        .markdown-body tr.entries-hidden { display: none; }
         .search-highlight { background: var(--highlight-bg); color: #000; padding: 1px 2px; border-radius: 2px; }
         .search-highlight.active { background: var(--highlight-active); color: #fff; box-shadow: 0 0 0 2px var(--highlight-active); }
         .table-filter-wrapper { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; margin-bottom: 8px; }
@@ -174,6 +175,21 @@
         .table-filter-title { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 1px; }
         .table-filter-toggle { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 4px 8px; font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); cursor: pointer; }
         .table-filter-toggle:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .entries-selector-wrapper { display: flex; align-items: center; gap: 6px; }
+        .entries-label { font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); }
+        .entries-dropdown { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 5px 8px; font-family: var(--font-mono); font-size: 11px; color: var(--text-primary); cursor: pointer; }
+        .entries-dropdown:hover { background: var(--bg-hover); }
+        .entries-dropdown:focus { outline: none; border-color: var(--accent-blue); }
+        .sort-controls-wrapper { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .sort-label { font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); }
+        .sort-select, .sort-method-select { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 5px 8px; font-family: var(--font-mono); font-size: 11px; color: var(--text-primary); cursor: pointer; }
+        .sort-select:hover, .sort-method-select:hover { background: var(--bg-hover); }
+        .sort-select:focus, .sort-method-select:focus { outline: none; border-color: var(--accent-blue); }
+        .sort-function-input { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 5px 8px; font-family: var(--font-mono); font-size: 11px; color: var(--text-primary); display: none; }
+        .sort-function-input.show { display: block; }
+        .sort-function-input:focus { outline: none; border-color: var(--accent-blue); }
+        .sort-apply-btn { background: var(--accent-blue); border: none; border-radius: var(--radius-sm); padding: 5px 10px; color: var(--bg-primary); cursor: pointer; font-family: var(--font-mono); font-size: 10px; font-weight: 600; }
+        .sort-apply-btn:hover { filter: brightness(1.1); }
         .table-filter-rules { display: flex; flex-direction: column; gap: 6px; }
         .filter-rule { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .filter-rule select, .filter-rule input { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 5px 8px; font-family: var(--font-mono); font-size: 11px; color: var(--text-primary); }
@@ -1283,7 +1299,7 @@ function setupTableFilters() {
         const wrapper = document.createElement('div'); wrapper.className = 'table-filter-wrapper'; wrapper.id = `filter-${idx}`;
         const columnSelectorId = `col-selector-${idx}`;
         const columnDropdownId = `col-dropdown-${idx}`;
-        wrapper.innerHTML = `<div class="table-filter-header"><span class="table-filter-title">🔍 Filter Table</span><button class="table-filter-toggle" data-idx="${idx}">Show/Hide</button></div><div class="table-filter-rules" id="rules-${idx}" style="display:none;"></div><div class="filter-actions" id="actions-${idx}" style="display:none;"><button class="filter-btn filter-add-btn" data-idx="${idx}">+ Add Rule</button><button class="filter-btn filter-apply-btn" data-idx="${idx}">Apply</button><button class="filter-btn filter-clear-btn" data-idx="${idx}">Clear</button></div><div class="filter-results" id="results-${idx}"></div><div class="table-copy-wrapper" style="display: flex; gap: 8px; align-items: center;"><div class="column-selector-wrapper"><button class="column-selector-btn" id="${columnSelectorId}" title="Select columns to copy">📊 Columns</button><div class="column-selector-dropdown" id="${columnDropdownId}"><div class="column-selector-header"><label class="column-select-all"><input type="checkbox" class="select-all-cols" data-idx="${idx}" checked><span>All Columns</span></label></div><div class="column-items-list" id="cols-list-${idx}"></div><div class="column-selector-footer"><span id="col-count-${idx}">0/0 selected</span></div></div></div><button class="copy-table-btn" data-table-idx="${idx}" title="Copy table in different formats">📋 Copy</button><div class="copy-formats-dropdown" id="dropdown-${idx}"><div class="copy-format-item" data-format="markdown">Markdown</div><div class="copy-format-item" data-format="json">JSON</div><div class="copy-format-item" data-format="html">HTML</div><div class="copy-format-item" data-format="csv">CSV</div><div class="copy-format-item" data-format="tsv">TSV</div></div></div>`;
+        wrapper.innerHTML = `<div class="table-filter-header"><span class="table-filter-title">🔍 Filter Table</span><div class="entries-selector-wrapper"><label class="entries-label">Show</label><select class="entries-dropdown" id="entries-${idx}" data-idx="${idx}"><option value="5">5</option><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option><option value="all">All</option></select><label class="entries-label">entries</label></div><div class="sort-controls-wrapper"><label class="sort-label">Sort by</label><select class="sort-select" id="sort-col-${idx}" data-idx="${idx}"><option value="">Select Column</option>${headers.map((h, i) => `<option value="${i}">${h}</option>`).join('')}</select><select class="sort-method-select" id="sort-method-${idx}" data-idx="${idx}"><option value="asc">Ascending</option><option value="desc">Descending</option><option value="alpha">Alphabetical</option><option value="func">Custom Function</option></select><input type="text" class="sort-function-input" id="sort-func-input-${idx}" placeholder="e.g., CAST(col AS UNSIGNED)" data-idx="${idx}"><button class="sort-apply-btn" id="sort-apply-${idx}" data-idx="${idx}">Apply Sort</button></div><button class="table-filter-toggle" data-idx="${idx}">Show/Hide</button></div><div class="table-filter-rules" id="rules-${idx}" style="display:none;"></div><div class="filter-actions" id="actions-${idx}" style="display:none;"><button class="filter-btn filter-add-btn" data-idx="${idx}">+ Add Rule</button><button class="filter-btn filter-apply-btn" data-idx="${idx}">Apply</button><button class="filter-btn filter-clear-btn" data-idx="${idx}">Clear</button></div><div class="filter-results" id="results-${idx}"></div><div class="table-copy-wrapper" style="display: flex; gap: 8px; align-items: center;"><div class="column-selector-wrapper"><button class="column-selector-btn" id="${columnSelectorId}" title="Select columns to copy">📊 Columns</button><div class="column-selector-dropdown" id="${columnDropdownId}"><div class="column-selector-header"><label class="column-select-all"><input type="checkbox" class="select-all-cols" data-idx="${idx}" checked><span>All Columns</span></label></div><div class="column-items-list" id="cols-list-${idx}"></div><div class="column-selector-footer"><span id="col-count-${idx}">0/0 selected</span></div></div></div><button class="copy-table-btn" data-table-idx="${idx}" title="Copy table in different formats">📋 Copy</button><div class="copy-formats-dropdown" id="dropdown-${idx}"><div class="copy-format-item" data-format="markdown">Markdown</div><div class="copy-format-item" data-format="json">JSON</div><div class="copy-format-item" data-format="html">HTML</div><div class="copy-format-item" data-format="csv">CSV</div><div class="copy-format-item" data-format="tsv">TSV</div></div></div>`;
         table.parentNode.insertBefore(wrapper, table);
         wrapper.querySelector('.table-filter-toggle').addEventListener('click', () => {
             const rules = document.getElementById(`rules-${idx}`), actions = document.getElementById(`actions-${idx}`);
@@ -1295,6 +1311,37 @@ function setupTableFilters() {
         wrapper.querySelector('.filter-add-btn').addEventListener('click', () => addFilterRule(idx, headers));
         wrapper.querySelector('.filter-apply-btn').addEventListener('click', () => applyTableFilter(idx, table, headers));
         wrapper.querySelector('.filter-clear-btn').addEventListener('click', () => clearTableFilter(idx, table));
+        
+        // Initialize entries selector
+        const entriesSelect = wrapper.querySelector(`#entries-${idx}`);
+        entriesSelect.addEventListener('change', () => applyEntriesLimit(idx, table, entriesSelect.value));
+        // Apply default entries limit of 5 on page load
+        applyEntriesLimit(idx, table, '5');
+        
+        // Initialize sort controls
+        const sortColSelect = wrapper.querySelector(`#sort-col-${idx}`);
+        const sortMethodSelect = wrapper.querySelector(`#sort-method-${idx}`);
+        const sortFuncInput = wrapper.querySelector(`#sort-func-input-${idx}`);
+        const sortApplyBtn = wrapper.querySelector(`#sort-apply-${idx}`);
+        
+        sortMethodSelect.addEventListener('change', () => {
+            if (sortMethodSelect.value === 'func') {
+                sortFuncInput.classList.add('show');
+            } else {
+                sortFuncInput.classList.remove('show');
+            }
+        });
+        
+        sortApplyBtn.addEventListener('click', () => {
+            const colIdx = sortColSelect.value;
+            if (colIdx === '') {
+                alert('Please select a column to sort');
+                return;
+            }
+            const method = sortMethodSelect.value;
+            const funcExpr = method === 'func' ? sortFuncInput.value : '';
+            applySortToTable(idx, table, headers, colIdx, method, funcExpr);
+        });
         
         // Initialize column selector
         initializeColumnSelector(idx, headers, columnSelectorId, columnDropdownId, table);
@@ -1361,6 +1408,11 @@ function applyTableFilter(idx, table, headers) {
         else { row.classList.add('filtered-out'); row.classList.remove('filter-match'); }
     });
     document.getElementById(`results-${idx}`).textContent = `Showing ${matchCount} of ${totalCount} rows`;
+    // Reapply entries limit after filter
+    const entriesSelect = document.querySelector(`#entries-${idx}`);
+    if (entriesSelect) {
+        applyEntriesLimit(idx, table, entriesSelect.value);
+    }
 }
 
 function evaluateCondition(cellVal, op, filterVal) {
@@ -1380,8 +1432,92 @@ function evaluateCondition(cellVal, op, filterVal) {
 }
 
 function clearTableFilter(idx, table) {
-    table.querySelectorAll('tr').forEach(r => { r.classList.remove('filtered-out', 'filter-match'); });
+    table.querySelectorAll('tr').forEach(r => { r.classList.remove('filtered-out', 'filter-match', 'entries-hidden'); });
     document.getElementById(`results-${idx}`).textContent = '';
+    // Reset entries dropdown to default (5)
+    const entriesSelect = document.querySelector(`#entries-${idx}`);
+    if (entriesSelect) {
+        entriesSelect.value = '5';
+        applyEntriesLimit(idx, table, '5');
+    }
+}
+
+function applyEntriesLimit(idx, table, entriesValue) {
+    const rows = table.querySelectorAll('tbody tr, tr:not(:first-child)');
+    let visibleCount = 0;
+    const limit = entriesValue === 'all' ? rows.length : parseInt(entriesValue);
+    
+    rows.forEach((row, index) => {
+        // Check if row is already hidden by filter
+        if (row.classList.contains('filtered-out')) {
+            row.classList.add('entries-hidden');
+        } else if (visibleCount < limit) {
+            row.classList.remove('entries-hidden');
+            visibleCount++;
+        } else {
+            row.classList.add('entries-hidden');
+        }
+    });
+}
+
+function applySortToTable(idx, table, headers, colIdx, method, funcExpr) {
+    const colIndex = parseInt(colIdx);
+    const rows = Array.from(table.querySelectorAll('tbody tr, tr:not(:first-child)'));
+    
+    const sortedRows = rows.sort((rowA, rowB) => {
+        const cellA = rowA.querySelectorAll('td')[colIndex];
+        const cellB = rowB.querySelectorAll('td')[colIndex];
+        const valA = cellA ? cellA.textContent.trim() : '';
+        const valB = cellB ? cellB.textContent.trim() : '';
+        
+        switch (method) {
+            case 'asc':
+                const numA = parseFloat(valA);
+                const numB = parseFloat(valB);
+                if (!isNaN(numA) && !isNaN(numB)) {
+                    return numA - numB;
+                }
+                return valA.localeCompare(valB);
+            case 'desc':
+                const numA2 = parseFloat(valA);
+                const numB2 = parseFloat(valB);
+                if (!isNaN(numA2) && !isNaN(numB2)) {
+                    return numB2 - numA2;
+                }
+                return valB.localeCompare(valA);
+            case 'alpha':
+                return valA.localeCompare(valB);
+            case 'func':
+                return evaluateCustomSort(valA, valB, funcExpr);
+            default:
+                return 0;
+        }
+    });
+    
+    const tbody = table.querySelector('tbody') || table;
+    sortedRows.forEach(row => {
+        tbody.appendChild(row);
+    });
+}
+
+function evaluateCustomSort(valA, valB, funcExpr) {
+    try {
+        const safeFunc = funcExpr.replace(/col/g, 'val');
+        const result = new Function('val', `return ${safeFunc}`);
+        const transformA = result(valA);
+        const transformB = result(valB);
+        
+        const numA = parseFloat(transformA);
+        const numB = parseFloat(transformB);
+        
+        if (!isNaN(numA) && !isNaN(numB)) {
+            return numA - numB;
+        }
+        return String(transformA).localeCompare(String(transformB));
+    } catch (e) {
+        console.error('Custom sort function error:', e);
+        return 0;
+    }
 }
 
 // ========================================
