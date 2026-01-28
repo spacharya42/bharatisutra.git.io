@@ -206,6 +206,8 @@
         .filter-apply-btn:hover { filter: brightness(1.1); }
         .filter-clear-btn { background: var(--bg-tertiary); border: 1px solid var(--accent-red); color: var(--accent-red); }
         .filter-clear-btn:hover { background: var(--accent-red); color: #fff; }
+        .filter-refresh-btn { background: var(--bg-tertiary); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); }
+        .filter-refresh-btn:hover { background: var(--accent-cyan); color: var(--bg-primary); }
         .table-copy-wrapper { display: flex; justify-content: flex-end; margin-top: 8px; position: relative; }
         .copy-table-btn { background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-secondary); padding: 6px 12px; border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 11px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px; }
         .copy-table-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
@@ -1299,7 +1301,7 @@ function setupTableFilters() {
         const wrapper = document.createElement('div'); wrapper.className = 'table-filter-wrapper'; wrapper.id = `filter-${idx}`;
         const columnSelectorId = `col-selector-${idx}`;
         const columnDropdownId = `col-dropdown-${idx}`;
-        wrapper.innerHTML = `<div class="table-filter-header"><span class="table-filter-title">🔍 Filter Table</span><div class="entries-selector-wrapper"><label class="entries-label">Show</label><select class="entries-dropdown" id="entries-${idx}" data-idx="${idx}"><option value="5">5</option><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option><option value="all">All</option></select><label class="entries-label">entries</label></div><div class="sort-controls-wrapper"><label class="sort-label">Sort by</label><select class="sort-select" id="sort-col-${idx}" data-idx="${idx}"><option value="">Select Column</option>${headers.map((h, i) => `<option value="${i}">${h}</option>`).join('')}</select><select class="sort-method-select" id="sort-method-${idx}" data-idx="${idx}"><option value="asc">Ascending</option><option value="desc">Descending</option><option value="alpha">Alphabetical</option><option value="func">Custom Function</option></select><input type="text" class="sort-function-input" id="sort-func-input-${idx}" placeholder="e.g., CAST(col AS UNSIGNED)" data-idx="${idx}"><button class="sort-apply-btn" id="sort-apply-${idx}" data-idx="${idx}">Apply Sort</button></div><button class="table-filter-toggle" data-idx="${idx}">Show/Hide</button></div><div class="table-filter-rules" id="rules-${idx}" style="display:none;"></div><div class="filter-actions" id="actions-${idx}" style="display:none;"><button class="filter-btn filter-add-btn" data-idx="${idx}">+ Add Rule</button><button class="filter-btn filter-apply-btn" data-idx="${idx}">Apply</button><button class="filter-btn filter-clear-btn" data-idx="${idx}">Clear</button></div><div class="filter-results" id="results-${idx}"></div><div class="table-copy-wrapper" style="display: flex; gap: 8px; align-items: center;"><div class="column-selector-wrapper"><button class="column-selector-btn" id="${columnSelectorId}" title="Select columns to copy">📊 Columns</button><div class="column-selector-dropdown" id="${columnDropdownId}"><div class="column-selector-header"><label class="column-select-all"><input type="checkbox" class="select-all-cols" data-idx="${idx}" checked><span>All Columns</span></label></div><div class="column-items-list" id="cols-list-${idx}"></div><div class="column-selector-footer"><span id="col-count-${idx}">0/0 selected</span></div></div></div><button class="copy-table-btn" data-table-idx="${idx}" title="Copy table in different formats">📋 Copy</button><div class="copy-formats-dropdown" id="dropdown-${idx}"><div class="copy-format-item" data-format="markdown">Markdown</div><div class="copy-format-item" data-format="json">JSON</div><div class="copy-format-item" data-format="html">HTML</div><div class="copy-format-item" data-format="csv">CSV</div><div class="copy-format-item" data-format="tsv">TSV</div></div></div>`;
+        wrapper.innerHTML = `<div class="table-filter-header"><span class="table-filter-title">🔍 Filter Table</span><div class="entries-selector-wrapper"><label class="entries-label">Show</label><select class="entries-dropdown" id="entries-${idx}" data-idx="${idx}"><option value="5">5</option><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option><option value="all">All</option></select><label class="entries-label">entries</label></div><div class="sort-controls-wrapper"><label class="sort-label">Sort by</label><select class="sort-select" id="sort-col-${idx}" data-idx="${idx}"><option value="">Select Column</option>${headers.map((h, i) => `<option value="${i}">${h}</option>`).join('')}</select><select class="sort-method-select" id="sort-method-${idx}" data-idx="${idx}"><option value="asc">Ascending</option><option value="desc">Descending</option><option value="alpha">Alphabetical</option><option value="func">Custom Function</option></select><input type="text" class="sort-function-input" id="sort-func-input-${idx}" placeholder="e.g., CAST(col AS UNSIGNED)" data-idx="${idx}"><button class="sort-apply-btn" id="sort-apply-${idx}" data-idx="${idx}">Apply Sort</button></div><button class="table-filter-toggle" data-idx="${idx}">Show/Hide</button></div><div class="table-filter-rules" id="rules-${idx}" style="display:none;"></div><div class="filter-actions" id="actions-${idx}" style="display:none;"><button class="filter-btn filter-add-btn" data-idx="${idx}">+ Add Rule</button><button class="filter-btn filter-apply-btn" data-idx="${idx}">Apply</button><button class="filter-btn filter-clear-btn" data-idx="${idx}">Clear</button><button class="filter-btn filter-refresh-btn" data-idx="${idx}">🔄 Refresh</button></div><div class="filter-results" id="results-${idx}"></div><div class="table-copy-wrapper" style="display: flex; gap: 8px; align-items: center;"><div class="column-selector-wrapper"><button class="column-selector-btn" id="${columnSelectorId}" title="Select columns to copy">📊 Columns</button><div class="column-selector-dropdown" id="${columnDropdownId}"><div class="column-selector-header"><label class="column-select-all"><input type="checkbox" class="select-all-cols" data-idx="${idx}" checked><span>All Columns</span></label></div><div class="column-items-list" id="cols-list-${idx}"></div><div class="column-selector-footer"><span id="col-count-${idx}">0/0 selected</span></div></div></div><button class="copy-table-btn" data-table-idx="${idx}" title="Copy table in different formats">📋 Copy</button><div class="copy-formats-dropdown" id="dropdown-${idx}"><div class="copy-format-item" data-format="markdown">Markdown</div><div class="copy-format-item" data-format="json">JSON</div><div class="copy-format-item" data-format="html">HTML</div><div class="copy-format-item" data-format="csv">CSV</div><div class="copy-format-item" data-format="tsv">TSV</div></div></div>`;
         table.parentNode.insertBefore(wrapper, table);
         wrapper.querySelector('.table-filter-toggle').addEventListener('click', () => {
             const rules = document.getElementById(`rules-${idx}`), actions = document.getElementById(`actions-${idx}`);
@@ -1311,6 +1313,7 @@ function setupTableFilters() {
         wrapper.querySelector('.filter-add-btn').addEventListener('click', () => addFilterRule(idx, headers));
         wrapper.querySelector('.filter-apply-btn').addEventListener('click', () => applyTableFilter(idx, table, headers));
         wrapper.querySelector('.filter-clear-btn').addEventListener('click', () => clearTableFilter(idx, table));
+        wrapper.querySelector('.filter-refresh-btn').addEventListener('click', () => refreshTableToDefault(idx, table));
         
         // Initialize entries selector
         const entriesSelect = wrapper.querySelector(`#entries-${idx}`);
@@ -1440,6 +1443,42 @@ function clearTableFilter(idx, table) {
         entriesSelect.value = '5';
         applyEntriesLimit(idx, table, '5');
     }
+}
+
+function refreshTableToDefault(idx, table) {
+    // Clear all filter rules
+    const rulesContainer = document.getElementById(`rules-${idx}`);
+    if (rulesContainer) {
+        rulesContainer.innerHTML = '';
+    }
+    
+    // Reset sort dropdowns
+    const sortColSelect = document.querySelector(`#sort-col-${idx}`);
+    const sortMethodSelect = document.querySelector(`#sort-method-${idx}`);
+    const sortFuncInput = document.querySelector(`#sort-func-input-${idx}`);
+    if (sortColSelect) sortColSelect.value = '';
+    if (sortMethodSelect) sortMethodSelect.value = 'asc';
+    if (sortFuncInput) {
+        sortFuncInput.value = '';
+        sortFuncInput.classList.remove('show');
+    }
+    
+    // Reset filter results and table display
+    table.querySelectorAll('tr').forEach(r => { r.classList.remove('filtered-out', 'filter-match', 'entries-hidden'); });
+    document.getElementById(`results-${idx}`).textContent = '';
+    
+    // Reset entries dropdown to default (5)
+    const entriesSelect = document.querySelector(`#entries-${idx}`);
+    if (entriesSelect) {
+        entriesSelect.value = '5';
+        applyEntriesLimit(idx, table, '5');
+    }
+    
+    // Hide the filter rules and actions sections
+    const rules = document.getElementById(`rules-${idx}`);
+    const actions = document.getElementById(`actions-${idx}`);
+    if (rules) rules.style.display = 'none';
+    if (actions) actions.style.display = 'none';
 }
 
 function applyEntriesLimit(idx, table, entriesValue) {
